@@ -50,7 +50,8 @@ USE yomhook,     ONLY: lhook, dr_hook
 USE parkind1,    ONLY: jprb, jpim
 USE ereport_mod, ONLY: ereport
 USE errormessagelength_mod, ONLY: errormessagelength
-USE umPrintMgr,  ONLY: umPrint, umMessage, PrintStatus, PrStatus_Min
+USE umPrintMgr,  ONLY: umPrint, umMessage, PrintStatus, PrStatus_Min,          &
+                       umPrintFlush
 
 IMPLICIT NONE
 
@@ -8700,6 +8701,10 @@ DO i=1,n_ratt_master
   END IF
 END DO
 
+! Print out the contents of ratj_defs_new to see if it corresponds to the 60
+! photolysis rates returned from FastJX.
+WRITE(umMessage,'(A)') 'ratj_defs_new reactants and base rate in chem_master:'
+CALL umPrint(umMessage,src=RoutineName)
 ! Pick out photolysis reactions needed
 j=0
 last_photol = ratj_t1(0,'','','','','','',0.0,0.0,0.0,0.0,0.0,'',0,0,0,0)
@@ -8713,9 +8718,12 @@ DO i=1,n_ratj_master
         (ratj_defs_master(i)%version > last_photol%version)) THEN
       ratj_defs_new(j) = ratj_defs_master(i)
       last_photol = ratj_defs_master(i)
+      WRITE(umMessage,'(A,A)') ratj_defs_new(j)%react1, ratj_defs_new(j)%fname
+      CALL umPrint(umMessage,src=RoutineName)
     END IF
   END IF
 END DO
+CALL umPrintFlush()
 
 ! Pick out heterogeneous reactions needed
 j=0

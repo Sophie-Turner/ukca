@@ -36,7 +36,7 @@ USE asad_flux_dat,    ONLY: asad_chemical_fluxes, stashcode_ukca_chem_diag
 USE asad_mod,         ONLY: advt, dpd, dpw, fpsc1, fpsc2,                      &
                             jpspb, jpsph, jpspj, jpspt,                        &
                             ldepd, ldepw,                                      &
-                            nbrkx, nhrkx, nprkx, ntrkx, prk,                   &
+                            nbrkx, nhrkx, nprkx, ntrkx, rk, prk,               &
                             spb, speci, sph, spj, spt, y,                      &
                             jpspec, jpbk, jptk, jppj, jphk, jpnr, jpctr
 USE ukca_tropopause,  ONLY: L_stratosphere
@@ -1462,7 +1462,7 @@ END SUBROUTINE asad_chemical_diagnostics_init
 
 ! #####################################################################
 SUBROUTINE asad_chemical_diagnostics(row_length, rows, model_levels,           &
-     chunk_size, dpd_full, dpw_full, prk_full, y_full,                         &
+     chunk_size, dpd_full, dpw_full, rk_full, prk_full, y_full,                &
      ix, jy, klevel, volume, ierr)
 
 USE ukca_config_constants_mod, ONLY: avogadro
@@ -1481,6 +1481,7 @@ REAL, INTENT(IN)    :: volume(row_length, rows, model_levels)   ! cell volume
 INTEGER, INTENT(IN OUT) :: ierr          ! error code
 REAL, INTENT(IN)    :: dpd_full(chunk_size,jpspec)
 REAL, INTENT(IN)    :: dpw_full(chunk_size,jpspec)
+REAL, INTENT(IN)    :: rk_full(chunk_size,jpnr)
 REAL, INTENT(IN)    :: prk_full(chunk_size,jpnr)
 REAL, INTENT(IN)    :: y_full(chunk_size,jpspec)
 
@@ -1539,13 +1540,22 @@ IF (ukca_config%l_ukca_asad_full) THEN
   ! prk is in units of molecules.cm^-3.s^-1
 !$OMP PARALLEL DEFAULT(NONE) PRIVATE(l)                                        &
 !$OMP SHARED(asad_chemdiags, convfac, dpd_full, dpw_full, L_stratosphere,      &
-!$OMP        model_levels, n_chemdiags, prk_full, row_length, rows, volume,    &
-!$OMP        y_full)
+!$OMP        model_levels, n_chemdiags, rk_full, prk_full, row_length, rows,   &
+!$OMP        volume, y_full)
 !$OMP DO SCHEDULE(DYNAMIC)
   DO l=1,n_chemdiags
     ! in this case ASAD is being called over the full domain so we
     ! need to fill %throughput by reshaping the array
     SELECT CASE (asad_chemdiags(l)%diag_type)
+    CASE (cdrte)
+      asad_chemdiags(l)%throughput(:,:,:) =                                   &
+           RESHAPE(rk_full(:,asad_chemdiags(l)%location),                     &
+           [row_length,rows,model_levels])
+      IF (asad_chemdiags(l)%tropospheric_mask) THEN
+        WHERE (L_stratosphere(:,:,:))
+          asad_chemdiags(l)%throughput(:,:,:) = 0.0
+        END WHERE
+      END IF
     CASE (cdrxn)
       asad_chemdiags(l)%throughput(:,:,:) =                                    &
            RESHAPE(prk_full(:,asad_chemdiags(l)%location),                     &
@@ -1595,6 +1605,14 @@ ELSE IF (ukca_config%l_ukca_asad_columns) THEN
     ! in this case ASAD is being called column-by column so we need
     ! to fill %throughput by iterating over X & Y
     SELECT CASE (asad_chemdiags(l)%diag_type)
+    CASE (cdrte)
+      asad_chemdiags(l)%throughput(ix,jy,:) =                                  &
+           rk_full(:,asad_chemdiags(l)%location)
+      IF (asad_chemdiags(l)%tropospheric_mask) THEN
+        WHERE (L_stratosphere(ix,jy,:))
+          asad_chemdiags(l)%throughput(ix,jy,:) = 0.0
+        END WHERE
+      END IF
     CASE (cdrxn)
       asad_chemdiags(l)%throughput(ix,jy,:) =                                  &
            prk_full(:,asad_chemdiags(l)%location)*volume(ix,jy,:)*convfac
@@ -1642,6 +1660,15 @@ ELSE
     ! in this case ASAD is being called horizontally so we need
     ! to fill %throughput by iterating over Z
     SELECT CASE (asad_chemdiags(l)%diag_type)
+    CASE (cdrte)
+      asad_chemdiags(l)%throughput(:,:,klevel) =                               &
+           RESHAPE(rk(:,asad_chemdiags(l)%location),                           &
+           [row_length,rows])
+      IF (asad_chemdiags(l)%tropospheric_mask) THEN
+        WHERE (L_stratosphere(:,:,klevel))
+          asad_chemdiags(l)%throughput(:,:,klevel) = 0.0
+        END WHERE
+      END IF
     CASE (cdrxn)
       asad_chemdiags(l)%throughput(:,:,klevel) =                               &
            RESHAPE(prk(:,asad_chemdiags(l)%location),                          &

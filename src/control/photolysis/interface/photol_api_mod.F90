@@ -54,6 +54,7 @@ USE photol_fieldname_mod,   ONLY:                                              &
   photol_fieldname_len =>  fieldname_len, photol_jlabel_len,                   &
   photol_fldname_aod_sulph_aitk => fldname_aod_sulph_aitk,                     &
   photol_fldname_aod_sulph_accum => fldname_aod_sulph_accum,                   &
+  photol_fldname_bulk_cloud_fraction => fldname_bulk_cloud_fraction,           &
   photol_fldname_area_cloud_fraction => fldname_area_cloud_fraction,           &
   photol_fldname_conv_cloud_amount => fldname_conv_cloud_amount,               &
   photol_fldname_conv_cloud_base => fldname_conv_cloud_base,                   &
@@ -62,6 +63,7 @@ USE photol_fieldname_mod,   ONLY:                                              &
   photol_fldname_cos_latitude => fldname_cos_latitude,                         &
   photol_fldname_equation_of_time => fldname_equation_of_time,                 &
   photol_fldname_land_fraction => fldname_land_fraction,                       &
+  photol_fldname_latitude => fldname_latitude,                                 &
   photol_fldname_longitude => fldname_longitude,                               &
   photol_fldname_ozone_mmr => fldname_ozone_mmr,                               &
   photol_fldname_p_layer_boundaries => fldname_p_layer_boundaries,             &
@@ -70,6 +72,9 @@ USE photol_fieldname_mod,   ONLY:                                              &
   photol_fldname_qcf => fldname_qcf, photol_fldname_qcl => fldname_qcl,        &
   photol_fldname_rad_ctl_jo2 => fldname_rad_ctl_jo2,                           &
   photol_fldname_rad_ctl_jo2b => fldname_rad_ctl_jo2b,                         &
+  photol_fldname_sw_flux_up => fldname_sw_flux_up,                             &
+  photol_fldname_sw_flux_down => fldname_sw_flux_down,                         &
+  photol_fldname_cos_sza_um => fldname_cos_sza_um,                             &
   photol_fldname_r_rho_levels => fldname_r_rho_levels,                         &
   photol_fldname_r_theta_levels => fldname_r_theta_levels,                     &
   photol_fldname_sec_since_midnight => fldname_sec_since_midnight,             &

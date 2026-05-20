@@ -60,7 +60,8 @@ USE photol_fieldname_mod,  ONLY: fieldname_len,                                &
                                  fldname_cos_latitude,                         &
                                  fldname_equation_of_time,                     &
                                  fldname_land_fraction,                        &
-                                 fldname_longitude,                            &
+                                 fldname_latitude,                             &
+				 fldname_longitude,                            &
                                  fldname_ozone_mmr,                            &
                                  fldname_p_layer_boundaries,                   &
                                  fldname_p_theta_levels,                       &
@@ -69,6 +70,9 @@ USE photol_fieldname_mod,  ONLY: fieldname_len,                                &
                                  fldname_qcl,                                  &
                                  fldname_rad_ctl_jo2,                          &
                                  fldname_rad_ctl_jo2b,                         &
+				 fldname_sw_flux_up,                           &
+				 fldname_sw_flux_down,                         &
+				 fldname_cos_sza_um,                           &
                                  fldname_r_rho_levels,                         &
                                  fldname_r_theta_levels,                       &
                                  fldname_sec_since_midnight,                   &
@@ -333,7 +337,25 @@ IF ( photol_config%i_photol_scheme == i_scheme_fastjx ) THEN
     CALL register_env_field(n_fields, fldname_so4_aitken,                      &
                             group_fullht_real)
   END IF
-
+  
+  ! These can later be separated out into a section for ML photolysis only.
+  ! Upward shortwave flux
+  IF ( n_fields <= n_max_fields ) THEN
+    CALL register_env_field(n_fields, fldname_sw_flux_up, group_fullht_real)
+  END IF  
+  ! Downward shortwave flux
+  IF ( n_fields <= n_max_fields ) THEN
+    CALL register_env_field(n_fields, fldname_sw_flux_down, group_fullht_real)
+  END IF
+  ! Cosine of solar zenith angle
+  IF ( n_fields <= n_max_fields ) THEN
+    CALL register_env_field(n_fields, fldname_cos_sza_um, group_flat_real)
+  END IF
+  ! Latitude
+  IF ( n_fields <= n_max_fields ) THEN
+    CALL register_env_field(n_fields, fldname_latitude, group_flat_real)
+  END IF
+  
   !-- Fields only required if FastJX and not using PC2 cloud scheme
   IF ( .NOT. photol_config%l_cloud_pc2 ) THEN
     ! Conv Cloud Amount

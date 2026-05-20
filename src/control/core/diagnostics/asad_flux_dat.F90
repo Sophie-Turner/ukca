@@ -83,7 +83,7 @@ PRIVATE
 
 ! Describes the bimolecular reaction rates
 TYPE :: asad_flux_defn
-  CHARACTER(LEN=3)  :: diag_type         ! which type of flux:RXN,DEP,EMS
+  CHARACTER(LEN=3)  :: diag_type         ! which type of flux:RXN,RTE,DEP,EMS
   INTEGER           :: stash_number      ! stash number, e.g. 50001 etc.
   CHARACTER(LEN=1)  :: rxn_type          ! which rxn type: B,H,T,J,D,W,S,A,L,V
   LOGICAL           :: tropospheric_mask ! T or F
@@ -107,7 +107,7 @@ INTEGER, PARAMETER, PUBLIC :: stashcode_ukca_chem_diag = 50
 
 TYPE(asad_flux_defn), ALLOCATABLE, SAVE, PUBLIC :: asad_chemical_fluxes(:)
 
-TYPE(asad_flux_defn), PARAMETER :: asad_trop_ox_budget_prod(20) =              &
+TYPE(asad_flux_defn), PARAMETER :: asad_trop_ox_budget_prod(26) =              &
 ! Production of Ox
        [ asad_flux_defn('RXN',50001,'B',.TRUE.,0,4,                            &
        ['HO2       ','NO        '],                                            &
@@ -166,6 +166,28 @@ TYPE(asad_flux_defn), PARAMETER :: asad_trop_ox_budget_prod(20) =              &
        ['NALD      ','PHOTON    '],                                            &
        ['HCHO      ','CO        ','NO2       ','HO2       ']),                 &
        asad_flux_defn('RXN',50006,'J',.TRUE.,0,6,                              &
+       ['ISON      ','PHOTON    '],                                            &
+       ['NO2       ','MACR      ','HCHO      ','HO2       ']),                 &
+
+! Organic nitrate photolysis rate coef: sum into STASH section 50 item 500
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,5,                             &
+       ['MeONO2    ','PHOTON    '],                                            &
+       ['HO2       ','HCHO      ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,6,                             &
+       ['NALD      ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','NO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,6,                             &
+       ['ISON      ','PHOTON    '],                                            &
+       ['NO2       ','MACR      ','HCHO      ','HO2       ']),                 &
+
+! Organic nitrate photolysis rate coef, separated out.
+       asad_flux_defn('RTE',50514,'J',.FALSE.,0,5,                             &
+       ['MeONO2    ','PHOTON    '],                                            &
+       ['HO2       ','HCHO      ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50515,'J',.FALSE.,0,6,                             &
+       ['NALD      ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','NO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50516,'J',.FALSE.,0,6,                             &
        ['ISON      ','PHOTON    '],                                            &
        ['NO2       ','MACR      ','HCHO      ','HO2       ']),                 &
 
@@ -562,7 +584,7 @@ TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_ox_budget_prod01(64) =      &
        ]
 
 
-TYPE(asad_flux_defn), PARAMETER :: cri_trop_ox_budget_prod02(41) =             &
+TYPE(asad_flux_defn), PARAMETER :: cri_trop_ox_budget_prod02(65) =             &
 ! OH + inorganic acid reactions: sum into STASH section 50 item 4
        [ asad_flux_defn('RXN',50004,'B',.TRUE.,0,4,                            &
        ['OH        ','HONO2     '],                                            &
@@ -677,6 +699,85 @@ TYPE(asad_flux_defn), PARAMETER :: cri_trop_ox_budget_prod02(41) =             &
        asad_flux_defn('RXN',50006,'J',.TRUE.,0,5,                              &
        ['RTX24NO3  ','PHOTON    '],                                            &
        ['TXCARB22  ','HO2       ','NO2       ','          ']),                 &
+       
+! Organic nitrate photolysis rate coef: sum into STASH section 50 item 500
+! Total = 12
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,5,                             &
+       ['MeONO2    ','PHOTON    '],                                            &
+       ['HO2       ','HCHO      ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,5,                             &
+       ['EtONO2    ','PHOTON    '],                                            &
+       ['MeCHO     ','HO2       ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,5,                             &
+       ['RN10NO3   ','PHOTON    '],                                            &
+       ['EtCHO     ','HO2       ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,5,                             &
+       ['i-PrONO2  ','PHOTON    '],                                            &
+       ['Me2CO     ','HO2       ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,5,                             &
+       ['RN13NO3   ','PHOTON    '],                                            &
+       ['MeCHO     ','EtOO      ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,5,                             &
+       ['RN13NO3   ','PHOTON    '],                                            &
+       ['CARB11A   ','HO2       ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,4,                             &
+       ['RN16NO3   ','PHOTON    '],                                            &
+       ['RN15O2    ','NO2       ','          ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,4,                             &
+       ['RN19NO3   ','PHOTON    '],                                            &
+       ['RN18O2    ','NO2       ','          ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,6,                             &
+       ['RA13NO3   ','PHOTON    '],                                            &
+       ['CARB3     ','UDCARB8   ','HO2       ','NO2       ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,6,                             &
+       ['RA16NO3   ','PHOTON    '],                                            &
+       ['CARB3     ','UDCARB11  ','HO2       ','NO2       ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,6,                             &
+       ['RA19NO3   ','PHOTON    '],                                            &
+       ['CARB6     ','UDCARB11  ','HO2       ','NO2       ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,5,                             &
+       ['RTX24NO3  ','PHOTON    '],                                            &
+       ['TXCARB22  ','HO2       ','NO2       ','          ']),                 &       
+       
+! Organic nitrate photolysis rate coef, separated out.
+! Total = 12
+       asad_flux_defn('RTE',50514,'J',.FALSE.,0,5,                             &
+       ['MeONO2    ','PHOTON    '],                                            &
+       ['HO2       ','HCHO      ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50517,'J',.FALSE.,0,5,                             &
+       ['EtONO2    ','PHOTON    '],                                            &
+       ['MeCHO     ','HO2       ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50518,'J',.FALSE.,0,5,                             &
+       ['RN10NO3   ','PHOTON    '],                                            &
+       ['EtCHO     ','HO2       ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50519,'J',.FALSE.,0,5,                             &
+       ['i-PrONO2  ','PHOTON    '],                                            &
+       ['Me2CO     ','HO2       ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50520,'J',.FALSE.,0,5,                             &
+       ['RN13NO3   ','PHOTON    '],                                            &
+       ['MeCHO     ','EtOO      ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50521,'J',.FALSE.,0,5,                             &
+       ['RN13NO3   ','PHOTON    '],                                            &
+       ['CARB11A   ','HO2       ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50522,'J',.FALSE.,0,4,                             &
+       ['RN16NO3   ','PHOTON    '],                                            &
+       ['RN15O2    ','NO2       ','          ','          ']),                 &
+       asad_flux_defn('RTE',50523,'J',.FALSE.,0,4,                             &
+       ['RN19NO3   ','PHOTON    '],                                            &
+       ['RN18O2    ','NO2       ','          ','          ']),                 &
+       asad_flux_defn('RTE',50524,'J',.FALSE.,0,6,                             &
+       ['RA13NO3   ','PHOTON    '],                                            &
+       ['CARB3     ','UDCARB8   ','HO2       ','NO2       ']),                 &
+       asad_flux_defn('RTE',50525,'J',.FALSE.,0,6,                             &
+       ['RA16NO3   ','PHOTON    '],                                            &
+       ['CARB3     ','UDCARB11  ','HO2       ','NO2       ']),                 &
+       asad_flux_defn('RTE',50526,'J',.FALSE.,0,6,                             &
+       ['RA19NO3   ','PHOTON    '],                                            &
+       ['CARB6     ','UDCARB11  ','HO2       ','NO2       ']),                 &
+       asad_flux_defn('RTE',50527,'J',.FALSE.,0,5,                             &
+       ['RTX24NO3  ','PHOTON    '],                                            &
+       ['TXCARB22  ','HO2       ','NO2       ','          ']),                 &        
+       
 ! OH + PAN-type reactions:
 ! These do not actually produce net Ox, so should not be included,
 ! but are included here to compare like-for-like with StratTrop
@@ -697,7 +798,7 @@ TYPE(asad_flux_defn), PARAMETER :: cri_trop_ox_budget_prod02(41) =             &
        ['Me2CO     ','CARB16    ','NO2       ','          '])                  &
         ]
 
-TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_ox_budget_prod02(44) =      &
+TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_ox_budget_prod02(74) =      &
 ! OH + inorganic acid reactions: sum into STASH section 50 item 4
        [ asad_flux_defn('RXN',50004,'B',.TRUE.,0,4,                            &
        ['OH        ','HONO2     '],                                            &
@@ -730,7 +831,7 @@ TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_ox_budget_prod02(44) =      &
        ['CARB17    ','NO2       ','          ','          ']),                 &
        asad_flux_defn('RXN',50005,'B',.TRUE.,0,4,                              &
        ['OH        ','HOC2H4NO3 '],                                            &
-       ['HOCH2CHO  ','NO2       ','          ','          ']),                 &
+       ['HOCH2CHO  ','NO2       ','          ','          ']),                 & !10
        asad_flux_defn('RXN',50005,'B',.TRUE.,0,4,                              &
        ['OH        ','RN9NO3    '],                                            &
        ['CARB7     ','NO2       ','          ','          ']),                 &
@@ -760,7 +861,7 @@ TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_ox_budget_prod02(44) =      &
        ['TNCARB26  ','NO2       ','          ','          ']),                 &
        asad_flux_defn('RXN',50005,'B',.TRUE.,0,5,                              &
        ['OH        ','RTN25NO3  '],                                            &
-       ['Me2CO     ','TNCARB15  ','NO2       ','          ']),                 &
+       ['Me2CO     ','TNCARB15  ','NO2       ','          ']),                 & !20
        asad_flux_defn('RXN',50005,'B',.TRUE.,0,5,                              &
        ['OH        ','RTX28NO3  '],                                            &
        ['TXCARB24  ','HCHO      ','NO2       ','          ']),                 &
@@ -790,7 +891,7 @@ TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_ox_budget_prod02(44) =      &
        ['Me2CO     ','HO2       ','NO2       ','          ']),                 &
        asad_flux_defn('RXN',50006,'J',.TRUE.,0,5,                              &
        ['RN13NO3   ','PHOTON    '],                                            &
-       ['MeCHO     ','EtOO      ','NO2       ','          ']),                 &
+       ['MeCHO     ','EtOO      ','NO2       ','          ']),                 & !30
        asad_flux_defn('RXN',50006,'J',.TRUE.,0,5,                              &
        ['RN13NO3   ','PHOTON    '],                                            &
        ['CARB11A   ','HO2       ','NO2       ','          ']),                 &
@@ -820,8 +921,102 @@ TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_ox_budget_prod02(44) =      &
        ['MeCO3     ','HOCH2CHO  ','NO2       ','          ']),                 &
        asad_flux_defn('RXN',50006,'J',.TRUE.,0,6,                              &
        ['RU14NO3   ','PHOTON    '],                                            &
+       ['UCARB10   ','HCHO      ','HO2       ','NO2       ']),                 & !40
+       
+! Organic nitrate photolysis rate coefs, summed. Total = 15.
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,5,                             &
+       ['MeONO2    ','PHOTON    '],                                            &
+       ['HO2       ','HCHO      ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,5,                             &
+       ['EtONO2    ','PHOTON    '],                                            &
+       ['MeCHO     ','HO2       ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,5,                             &
+       ['RN10NO3   ','PHOTON    '],                                            &
+       ['EtCHO     ','HO2       ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,5,                             &
+       ['i-PrONO2  ','PHOTON    '],                                            &
+       ['Me2CO     ','HO2       ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,5,                             &
+       ['RN13NO3   ','PHOTON    '],                                            &
+       ['MeCHO     ','EtOO      ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,5,                             &
+       ['RN13NO3   ','PHOTON    '],                                            &
+       ['CARB11A   ','HO2       ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,4,                             &
+       ['RN16NO3   ','PHOTON    '],                                            &
+       ['RN15O2    ','NO2       ','          ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,4,                             &
+       ['RN19NO3   ','PHOTON    '],                                            &
+       ['RN18O2    ','NO2       ','          ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,6,                             &
+       ['RA13NO3   ','PHOTON    '],                                            &
+       ['CARB3     ','UDCARB8   ','HO2       ','NO2       ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,6,                             &
+       ['RA16NO3   ','PHOTON    '],                                            &
+       ['CARB3     ','UDCARB11  ','HO2       ','NO2       ']),                 & !50
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,6,                             &
+       ['RA19NO3   ','PHOTON    '],                                            &
+       ['CARB6     ','UDCARB11  ','HO2       ','NO2       ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,5,                             &
+       ['RTX24NO3  ','PHOTON    '],                                            &
+       ['TXCARB22  ','HO2       ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,6,                             &
+       ['RU12NO3   ','PHOTON    '],                                            &
+       ['CARB6     ','HOCH2CHO  ','NO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,5,                             &
+       ['RU10NO3   ','PHOTON    '],                                            &
+       ['MeCO3     ','HOCH2CHO  ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50500,'J',.FALSE.,0,6,                             &
+       ['RU14NO3   ','PHOTON    '],                                            &
        ['UCARB10   ','HCHO      ','HO2       ','NO2       ']),                 &
-! Skipping OH + PAN-type reactions:
+! Organic nitrate photolysis rate coefs, separated out. Total = 15.         
+       asad_flux_defn('RTE',50514,'J',.FALSE.,0,5,                             &
+       ['MeONO2    ','PHOTON    '],                                            &
+       ['HO2       ','HCHO      ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50517,'J',.FALSE.,0,5,                             &
+       ['EtONO2    ','PHOTON    '],                                            &
+       ['MeCHO     ','HO2       ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50518,'J',.FALSE.,0,5,                             &
+       ['RN10NO3   ','PHOTON    '],                                            &
+       ['EtCHO     ','HO2       ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50519,'J',.FALSE.,0,5,                             &
+       ['i-PrONO2  ','PHOTON    '],                                            &
+       ['Me2CO     ','HO2       ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50520,'J',.FALSE.,0,5,                             &
+       ['RN13NO3   ','PHOTON    '],                                            &
+       ['MeCHO     ','EtOO      ','NO2       ','          ']),                 & !60
+       asad_flux_defn('RTE',50521,'J',.FALSE.,0,5,                             &
+       ['RN13NO3   ','PHOTON    '],                                            &
+       ['CARB11A   ','HO2       ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50522,'J',.FALSE.,0,4,                             &
+       ['RN16NO3   ','PHOTON    '],                                            &
+       ['RN15O2    ','NO2       ','          ','          ']),                 &
+       asad_flux_defn('RTE',50523,'J',.FALSE.,0,4,                             &
+       ['RN19NO3   ','PHOTON    '],                                            &
+       ['RN18O2    ','NO2       ','          ','          ']),                 &
+       asad_flux_defn('RTE',50524,'J',.FALSE.,0,6,                             &
+       ['RA13NO3   ','PHOTON    '],                                            &
+       ['CARB3     ','UDCARB8   ','HO2       ','NO2       ']),                 &
+       asad_flux_defn('RTE',50525,'J',.FALSE.,0,6,                             &
+       ['RA16NO3   ','PHOTON    '],                                            &
+       ['CARB3     ','UDCARB11  ','HO2       ','NO2       ']),                 &
+       asad_flux_defn('RTE',50526,'J',.FALSE.,0,6,                             &
+       ['RA19NO3   ','PHOTON    '],                                            &
+       ['CARB6     ','UDCARB11  ','HO2       ','NO2       ']),                 &
+       asad_flux_defn('RTE',50527,'J',.FALSE.,0,5,                             &
+       ['RTX24NO3  ','PHOTON    '],                                            &
+       ['TXCARB22  ','HO2       ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50510,'J',.FALSE.,0,6,                             &
+       ['RU12NO3   ','PHOTON    '],                                            &
+       ['CARB6     ','HOCH2CHO  ','NO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50528,'J',.FALSE.,0,5,                             &
+       ['RU10NO3   ','PHOTON    '],                                            &
+       ['MeCO3     ','HOCH2CHO  ','NO2       ','          ']),                 &
+       asad_flux_defn('RTE',50529,'J',.FALSE.,0,6,                             &
+       ['RU14NO3   ','PHOTON    '],                                            &
+       ['UCARB10   ','HCHO      ','HO2       ','NO2       ']),                 & !70
+       
+       ! Skipping OH + PAN-type reactions:
 ! These do not produce net Ox, so should not be included
 !++SAN - readding these just so that I can compare like-for-like with
 ! StratTrop (+5)
@@ -836,12 +1031,11 @@ TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_ox_budget_prod02(44) =      &
        ['CARB7     ','CO        ','NO2       ','          ']),                 &
        asad_flux_defn('RXN',50007,'B',.TRUE.,0,5,                              &
        ['OH        ','RTN26PAN  '],                                            &
-       ['Me2CO     ','CARB16    ','NO2       ','          '])                  &
+       ['Me2CO     ','CARB16    ','NO2       ','          '])                  & !74
        ]
 
 
-
-TYPE(asad_flux_defn), PARAMETER :: asad_trop_ox_budget_loss01(23)              &
+TYPE(asad_flux_defn), PARAMETER :: asad_trop_ox_budget_loss01(28)              &
 ! Loss of Ox
        = [ asad_flux_defn('RXN',50011,'B',.TRUE.,0,4,                          &
        ['O(1D)     ','H2O       '],                                            &
@@ -920,6 +1114,10 @@ TYPE(asad_flux_defn), PARAMETER :: asad_trop_ox_budget_loss01(23)              &
        asad_flux_defn('RXN',50017,'J',.TRUE.,0,4,                              &
        ['NO3       ','PHOTON    '],                                            &
        ['NO        ','O2        ','          ','          ']),                 &
+! sink of 2xOx photolysis coef:
+       asad_flux_defn('RTE',50555,'J',.FALSE.,0,4,                             &
+       ['NO3       ','PHOTON    '],                                            &
+       ['NO        ','O2        ','          ','          ']),                 &
 ! these are sinks of 1xOx
        asad_flux_defn('RXN',50017,'B',.TRUE.,0,4,                              &
        ['HO2       ','NO3       '],                                            &
@@ -929,10 +1127,24 @@ TYPE(asad_flux_defn), PARAMETER :: asad_trop_ox_budget_loss01(23)              &
        ['HO2       ','NO2       ','          ','          ']),                 &
        asad_flux_defn('RXN',50017,'B',.TRUE.,0,5,                              &
        ['MeOO      ','NO3       '],                                            &
-       ['HO2       ','HCHO      ','NO2       ','          '])                  &
+       ['HO2       ','HCHO      ','NO2       ','          ']),                 & 
+       
+! Other NOx
+       asad_flux_defn('RXN',50650,'J',.TRUE.,0,4,                              &
+       ['NO        ','PHOTON    '],                                            &
+       ['N         ','O(3P)     ','          ','          ']),                 &
+       asad_flux_defn('RXN',50651,'J',.TRUE.,0,4,                              &
+       ['NO2       ','PHOTON    '],                                            &
+       ['NO        ','O(3P)     ','          ','          ']),                 &
+       asad_flux_defn('RTE',50652,'J',.FALSE.,0,4,                             &
+       ['NO        ','PHOTON    '],                                            &
+       ['N         ','O(3P)     ','          ','          ']),                 &
+       asad_flux_defn('RTE',50653,'J',.FALSE.,0,4,                             &
+       ['NO2       ','PHOTON    '],                                            &
+       ['NO        ','O(3P)     ','          ','          '])                  &
        ]
 
-TYPE(asad_flux_defn), PARAMETER, PUBLIC :: asad_trop_ox_budget_loss01_132(23)  &
+TYPE(asad_flux_defn), PARAMETER, PUBLIC :: asad_trop_ox_budget_loss01_132(27)  &
 ! Version for use when i_ukca_chem_version >= 132
 ! Loss of Ox
        = [ asad_flux_defn('RXN',50011,'B',.TRUE.,0,4,                          &
@@ -1020,13 +1232,27 @@ TYPE(asad_flux_defn), PARAMETER, PUBLIC :: asad_trop_ox_budget_loss01_132(23)  &
        ['HO2       ','NO2       ','          ','          ']),                 &
        asad_flux_defn('RXN',50017,'B',.TRUE.,0,5,                              &
        ['MeOO      ','NO3       '],                                            &
-       ['HO2       ','HCHO      ','NO2       ','          '])                  &
+       ['HO2       ','HCHO      ','NO2       ','          ']),                 &
+
+! Other NOx       
+       asad_flux_defn('RXN',50650,'J',.TRUE.,0,4,                              &
+       ['NO        ','PHOTON    '],                                            &
+       ['N         ','O(3P)     ','          ','          ']),                 &
+       asad_flux_defn('RXN',50651,'J',.TRUE.,0,4,                              &
+       ['NO2       ','PHOTON    '],                                            &
+       ['NO        ','O(3P)     ','          ','          ']),                 &
+       asad_flux_defn('RTE',50652,'J',.FALSE.,0,4,                             &
+       ['NO        ','PHOTON    '],                                            &
+       ['N         ','O(3P)     ','          ','          ']),                 &
+       asad_flux_defn('RTE',50653,'J',.FALSE.,0,4,                             &
+       ['NO2       ','PHOTON    '],                                            &
+       ['NO        ','O(3P)     ','          ','          '])                  &
        ]
 
 
 
 ! Whole atmosphere CH4 rxn-flux diagnostics
-TYPE(asad_flux_defn), PARAMETER :: asad_atmos_ch4_budget_loss(6)               &
+TYPE(asad_flux_defn), PARAMETER :: asad_atmos_ch4_budget_loss(7)               &
   ! Whole atmosphere CH4+OH rxn-flux
        = [ asad_flux_defn('RXN',50428,'B',.FALSE.,0,4,                         &
        ['OH        ','CH4       '],                                            &
@@ -1048,6 +1274,10 @@ TYPE(asad_flux_defn), PARAMETER :: asad_atmos_ch4_budget_loss(6)               &
   ! Whole atmosphere CH4+hv rxn-flux
        asad_flux_defn('RXN',50431,'J',.FALSE.,0,4,                             &
        ['CH4       ','PHOTON    '],                                            &
+       ['MeOO      ','H         ','          ','          ']),                 &
+  ! Photolysis rate coefficients
+       asad_flux_defn('RTE',50558,'J',.FALSE.,0,4,                             &
+       ['CH4       ','PHOTON    '],                                            &
        ['MeOO      ','H         ','          ','          '])                  &
        ]
 
@@ -1068,7 +1298,7 @@ TYPE(asad_flux_defn), PARAMETER :: asad_ch4_ste(1)                             &
        ]
 
 ! Equivalent ox budget losses for CRI mechanism
-TYPE(asad_flux_defn), PARAMETER :: cri_trop_ox_budget_loss01(34)               &
+TYPE(asad_flux_defn), PARAMETER :: cri_trop_ox_budget_loss01(39)               &
 ! Loss of Ox
        = [ asad_flux_defn('RXN',50011,'B',.TRUE.,0,4,                          &
        ['O(1D)     ','H2O       '],                                            &
@@ -1186,10 +1416,28 @@ TYPE(asad_flux_defn), PARAMETER :: cri_trop_ox_budget_loss01(34)               &
        ['HO2       ','NO2       ','          ','          ']),                 &
        asad_flux_defn('RXN',50017,'B',.TRUE.,0,5,                              &
        ['MeOO      ','NO3       '],                                            &
-       ['HO2       ','HCHO      ','NO2       ','          '])                  &
+       ['HO2       ','HCHO      ','NO2       ','          ']),                 &
+       ! Photolysis rate coefficients
+       asad_flux_defn('RTE',50555,'J',.FALSE.,0,4,                             &
+       ['NO3       ','PHOTON    '],                                            &
+       ['NO        ','O2        ','          ','          ']),                 &       
+
+! Other NOx
+       asad_flux_defn('RXN',50650,'J',.TRUE.,0,4,                              &
+       ['NO        ','PHOTON    '],                                            &
+       ['N         ','O(3P)     ','          ','          ']),                 &
+       asad_flux_defn('RXN',50651,'J',.TRUE.,0,4,                              &
+       ['NO2       ','PHOTON    '],                                            &
+       ['NO        ','O(3P)     ','          ','          ']),                 &
+       asad_flux_defn('RTE',50652,'J',.FALSE.,0,4,                             &
+       ['NO        ','PHOTON    '],                                            &
+       ['N         ','O(3P)     ','          ','          ']),                 &
+       asad_flux_defn('RTE',50653,'J',.FALSE.,0,4,                             &
+       ['NO2       ','PHOTON    '],                                            &
+       ['NO        ','O(3P)     ','          ','          '])                  &       
        ]
 
-TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_ox_budget_loss01(41)        &
+TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_ox_budget_loss01(46)        &
 ! Loss of Ox
        = [ asad_flux_defn('RXN',50011,'B',.TRUE.,0,4,                          &
        ['O(1D)     ','H2O       '],                                            &
@@ -1325,14 +1573,30 @@ TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_ox_budget_loss01(41)        &
        ['HO2       ','NO2       ','          ','          ']),                 &
        asad_flux_defn('RXN',50017,'B',.TRUE.,0,5,                              &
        ['MeOO      ','NO3       '],                                            &
-       ['HO2       ','HCHO      ','NO2       ','          '])                  &
-       ]
-
-
+       ['HO2       ','HCHO      ','NO2       ','          ']),                 &
+! Photolysis rate coefficients
+       asad_flux_defn('RTE',50555,'J',.FALSE.,0,4,                             &
+       ['NO3       ','PHOTON    '],                                            &
+       ['NO        ','O2        ','          ','          ']),                 &
+       
+! Other NOx
+       asad_flux_defn('RXN',50650,'J',.TRUE.,0,4,                              &
+       ['NO        ','PHOTON    '],                                            &
+       ['N         ','O(3P)     ','          ','          ']),                 &
+       asad_flux_defn('RXN',50651,'J',.TRUE.,0,4,                              &
+       ['NO2       ','PHOTON    '],                                            &
+       ['NO        ','O(3P)     ','          ','          ']),                 &
+       asad_flux_defn('RTE',50652,'J',.FALSE.,0,4,                             &
+       ['NO        ','PHOTON    '],                                            &
+       ['N         ','O(3P)     ','          ','          ']),                 &
+       asad_flux_defn('RTE',50653,'J',.FALSE.,0,4,                             &
+       ['NO2       ','PHOTON    '],                                            &
+       ['NO        ','O(3P)     ','          ','          '])                  &
+       ] 
 
 ! Equivalent ox budget losses for CRI mechanism with GLOMAP aerosols
 ! (Different Monoterp+Ox type reactions)
-TYPE(asad_flux_defn), PARAMETER :: cri_aer_trop_ox_budget_loss01(34)           &
+TYPE(asad_flux_defn), PARAMETER :: cri_aer_trop_ox_budget_loss01(39)           &
 ! Loss of Ox
        = [ asad_flux_defn('RXN',50011,'B',.TRUE.,0,4,                          &
        ['O(1D)     ','H2O       '],                                            &
@@ -1450,10 +1714,28 @@ TYPE(asad_flux_defn), PARAMETER :: cri_aer_trop_ox_budget_loss01(34)           &
        ['HO2       ','NO2       ','          ','          ']),                 &
        asad_flux_defn('RXN',50017,'B',.TRUE.,0,5,                              &
        ['MeOO      ','NO3       '],                                            &
-       ['HO2       ','HCHO      ','NO2       ','          '])                  &
-       ]
+       ['HO2       ','HCHO      ','NO2       ','          ']),                 &
+       ! Photolysis rate coefficients
+       asad_flux_defn('RTE',50555,'J',.FALSE.,0,4,                             &
+       ['NO3       ','PHOTON    '],                                            &
+       ['NO        ','O2        ','          ','          ']),                 &
+       
+! Other NOx
+       asad_flux_defn('RXN',50650,'J',.TRUE.,0,4,                              &
+       ['NO        ','PHOTON    '],                                            &
+       ['N         ','O(3P)     ','          ','          ']),                 &
+       asad_flux_defn('RXN',50651,'J',.TRUE.,0,4,                              &
+       ['NO2       ','PHOTON    '],                                            &
+       ['NO        ','O(3P)     ','          ','          ']),                 &
+       asad_flux_defn('RTE',50652,'J',.FALSE.,0,4,                             &
+       ['NO        ','PHOTON    '],                                            &
+       ['N         ','O(3P)     ','          ','          ']),                 &
+       asad_flux_defn('RTE',50653,'J',.FALSE.,0,4,                             &
+       ['NO2       ','PHOTON    '],                                            &
+       ['NO        ','O(3P)     ','          ','          '])                  & 
+       ] 
 
-TYPE(asad_flux_defn), PARAMETER :: cri_strat2_aer_trop_ox_budget_loss01(41)    &
+TYPE(asad_flux_defn), PARAMETER :: cri_strat2_aer_trop_ox_budget_loss01(45)    &
 ! Loss of Ox
        = [ asad_flux_defn('RXN',50011,'B',.TRUE.,0,4,                          &
        ['O(1D)     ','H2O       '],                                            &
@@ -1590,7 +1872,21 @@ TYPE(asad_flux_defn), PARAMETER :: cri_strat2_aer_trop_ox_budget_loss01(41)    &
        ['HO2       ','NO2       ','          ','          ']),                 &
        asad_flux_defn('RXN',50017,'B',.TRUE.,0,5,                              &
        ['MeOO      ','NO3       '],                                            &
-       ['HO2       ','HCHO      ','NO2       ','          '])                  &
+       ['HO2       ','HCHO      ','NO2       ','          ']),                 &
+       
+! Other NOx
+       asad_flux_defn('RXN',50650,'J',.TRUE.,0,4,                              &
+       ['NO        ','PHOTON    '],                                            &
+       ['N         ','O(3P)     ','          ','          ']),                 &
+       asad_flux_defn('RXN',50651,'J',.TRUE.,0,4,                              &
+       ['NO2       ','PHOTON    '],                                            &
+       ['NO        ','O(3P)     ','          ','          ']),                 &
+       asad_flux_defn('RTE',50652,'J',.FALSE.,0,4,                             &
+       ['NO        ','PHOTON    '],                                            &
+       ['N         ','O(3P)     ','          ','          ']),                 &
+       asad_flux_defn('RTE',50653,'J',.FALSE.,0,4,                             &
+       ['NO2       ','PHOTON    '],                                            &
+       ['NO        ','O(3P)     ','          ','          '])                  &       
        ]
 
 
@@ -3789,7 +4085,7 @@ TYPE(asad_flux_defn), PARAMETER :: cri_trop_other_fluxes(56) =                 &
        ['HONO2     ','m         ','          ','          '])                  &
        ]
 
-TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_other_fluxes(64) =          &
+TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_other_fluxes(65) =          &
 ! Extra fluxes of interest
        [ asad_flux_defn('RXN',50042,'B',.TRUE.,0,3,                            &
        ['NO3       ','C5H8      '],                                            &
@@ -3988,9 +4284,12 @@ TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_other_fluxes(64) =          &
        ['RU10OOH   ','CO        ','HO2       ','          ']),                 &
        asad_flux_defn('RXN',50046,'T',.TRUE.,0,4,                              &
        ['OH        ','NO2       '],                                            &
-       ['HONO2     ','m         ','          ','          '])                  &
+       ['HONO2     ','m         ','          ','          ']),                 &
+       ! Photolysis rate coefficient.
+       asad_flux_defn('RTE',50556,'J',.FALSE.,0,6,                             &
+       ['DHPCARB9  ','PHOTON    '],                                            &
+       ['RN8OOH    ','CO        ','HO2       ','OH        '])                  &
        ]
-
 
 
 ! Equivalent fluxes in CRI mechanism
@@ -4416,7 +4715,7 @@ TYPE(asad_flux_defn), PARAMETER :: asad_general_interest(8) = [                &
        ]
 
 
-TYPE(asad_flux_defn), PARAMETER :: asad_trop_co_budget(21) = [                 &
+TYPE(asad_flux_defn), PARAMETER :: asad_trop_co_budget(36) = [                 &
 ! CO budget
 ! CO loss
        asad_flux_defn('RXN',50071,'B',.TRUE.,0,3,                              &
@@ -4488,6 +4787,57 @@ TYPE(asad_flux_defn), PARAMETER :: asad_trop_co_budget(21) = [                 &
        asad_flux_defn('RXN',50078,'J',.TRUE.,0,6,                              &
        ['NALD      ','PHOTON    '],                                            &
        ['HCHO      ','CO        ','NO2       ','HO2       ']),                 &
+! CO prod - photol rate coefs
+! HCHO photol coef: RADICAL
+       asad_flux_defn('RTE',50501,'J',.FALSE.,0,5,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['HO2       ','HO2       ','CO        ','          ']),                 &
+! HCHO photol coef: MOLECULAR
+       asad_flux_defn('RTE',50502,'J',.FALSE.,0,4,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['H2        ','CO        ','          ','          ']),                 &
+! MGLY photol coef
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,5,                             &
+       ['MGLY      ','PHOTON    '],                                            &
+       ['MeCO3     ','CO        ','HO2       ','          ']),                 &
+! OTHER CO PROD PHOTOLYSIS COEFS, summed. Total = 6.
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['MeOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,4,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['CH4       ','CO        ','          ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['EtCHO     ','PHOTON    '],                                            &
+       ['EtOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['MACR      ','PHOTON    '],                                            &
+       ['MeCO3     ','HCHO      ','CO        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['MACROOH   ','PHOTON    '],                                            &
+       ['HACET     ','CO        ','MGLY      ','HCHO      ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['NALD      ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','NO2       ','HO2       ']),                 &
+! OTHER CO PROD PHOTOLYSIS COEFS, separated out. Total = 6.
+       asad_flux_defn('RTE',50540,'J',.FALSE.,0,5,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['MeOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50571,'J',.FALSE.,0,4,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['CH4       ','CO        ','          ','          ']),                 &
+       asad_flux_defn('RTE',50541,'J',.FALSE.,0,5,                             &
+       ['EtCHO     ','PHOTON    '],                                            &
+       ['EtOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50569,'J',.FALSE.,0,6,                             &
+       ['MACR      ','PHOTON    '],                                            &
+       ['MeCO3     ','HCHO      ','CO        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50570,'J',.FALSE.,0,6,                             &
+       ['MACROOH   ','PHOTON    '],                                            &
+       ['HACET     ','CO        ','MGLY      ','HCHO      ']),                 &
+       asad_flux_defn('RTE',50515,'J',.FALSE.,0,6,                             &
+       ['NALD      ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','NO2       ','HO2       ']),                 &
 ! CO drydep
        asad_flux_defn('DEP',50079,'D',.TRUE.,0,1,                              &
        ['CO        ','          '],                                            &
@@ -4495,7 +4845,7 @@ TYPE(asad_flux_defn), PARAMETER :: asad_trop_co_budget(21) = [                 &
        ]
 
 
-TYPE(asad_flux_defn), PARAMETER :: asad_trop_co_budget_121(21) = [             &
+TYPE(asad_flux_defn), PARAMETER :: asad_trop_co_budget_121(36) = [             &
 ! CO budget
 ! CO loss
        asad_flux_defn('RXN',50071,'B',.TRUE.,0,4,                              &
@@ -4567,6 +4917,57 @@ TYPE(asad_flux_defn), PARAMETER :: asad_trop_co_budget_121(21) = [             &
        asad_flux_defn('RXN',50078,'J',.TRUE.,0,6,                              &
        ['NALD      ','PHOTON    '],                                            &
        ['HCHO      ','CO        ','NO2       ','HO2       ']),                 &
+! CO prod - photol rate coefs
+! HCHO photol coef: RADICAL
+       asad_flux_defn('RTE',50501,'J',.FALSE.,0,5,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['HO2       ','HO2       ','CO        ','          ']),                 &
+! HCHO photol coef: MOLECULAR
+       asad_flux_defn('RTE',50502,'J',.FALSE.,0,4,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['H2        ','CO        ','          ','          ']),                 &
+! MGLY photol coef
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,5,                             &
+       ['MGLY      ','PHOTON    '],                                            &
+       ['MeCO3     ','CO        ','HO2       ','          ']),                 &
+! OTHER CO PROD PHOTOLYSIS COEFS, summed. Total = 6
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['MeOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,4,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['CH4       ','CO        ','          ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['EtCHO     ','PHOTON    '],                                            &
+       ['EtOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['MACR      ','PHOTON    '],                                            &
+       ['MeCO3     ','HCHO      ','CO        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['MACROOH   ','PHOTON    '],                                            &
+       ['HACET     ','CO        ','MGLY      ','HCHO      ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['NALD      ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','NO2       ','HO2       ']),                 &
+! OTHER CO PROD PHOTOLYSIS COEFS, separated. Total = 6
+       asad_flux_defn('RTE',50540,'J',.FALSE.,0,5,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['MeOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50571,'J',.FALSE.,0,4,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['CH4       ','CO        ','          ','          ']),                 &
+       asad_flux_defn('RTE',50541,'J',.FALSE.,0,5,                             &
+       ['EtCHO     ','PHOTON    '],                                            &
+       ['EtOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50569,'J',.FALSE.,0,6,                             &
+       ['MACR      ','PHOTON    '],                                            &
+       ['MeCO3     ','HCHO      ','CO        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50570,'J',.FALSE.,0,6,                             &
+       ['MACROOH   ','PHOTON    '],                                            &
+       ['HACET     ','CO        ','MGLY      ','HCHO      ']),                 &
+       asad_flux_defn('RTE',50515,'J',.FALSE.,0,6,                             &
+       ['NALD      ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','NO2       ','HO2       ']),                 &
 ! CO drydep
        asad_flux_defn('DEP',50079,'D',.TRUE.,0,1,                              &
        ['CO        ','          '],                                            &
@@ -4574,7 +4975,7 @@ TYPE(asad_flux_defn), PARAMETER :: asad_trop_co_budget_121(21) = [             &
        ]
 
 
-TYPE(asad_flux_defn), PARAMETER :: asad_ro2perm_trop_co_budget(21) = [         &
+TYPE(asad_flux_defn), PARAMETER :: asad_ro2perm_trop_co_budget(36) = [         &
 ! CO budget
 ! CO loss
        asad_flux_defn('RXN',50071,'B',.TRUE.,0,3,                              &
@@ -4647,6 +5048,57 @@ TYPE(asad_flux_defn), PARAMETER :: asad_ro2perm_trop_co_budget(21) = [         &
        asad_flux_defn('RXN',50078,'J',.TRUE.,0,6,                              &
        ['NALD      ','PHOTON    '],                                            &
        ['HCHO      ','CO        ','NO2       ','HO2       ']),                 &
+! CO prod - photol rate coefs
+! HCHO photol coef: RADICAL
+       asad_flux_defn('RTE',50501,'J',.FALSE.,0,5,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['HO2       ','HO2       ','CO        ','          ']),                 &
+! HCHO photol coef: MOLECULAR
+       asad_flux_defn('RTE',50502,'J',.FALSE.,0,4,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['H2        ','CO        ','          ','          ']),                 &
+! MGLY photol coef
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,5,                             &
+       ['MGLY      ','PHOTON    '],                                            &
+       ['MeCO3     ','CO        ','HO2       ','          ']),                 &
+! OTHER CO PROD PHOTOLYSIS COEFS, summed. Total = 6
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['MeOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,4,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['CH4       ','CO        ','          ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['EtCHO     ','PHOTON    '],                                            &
+       ['EtOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['MACR      ','PHOTON    '],                                            &
+       ['MeCO3     ','HCHO      ','CO        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['MACROOH   ','PHOTON    '],                                            &
+       ['HACET     ','CO        ','MGLY      ','HCHO      ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['NALD      ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','NO2       ','HO2       ']),                 &
+! OTHER CO PROD PHOTOLYSIS COEFS, separated. Total = 6
+       asad_flux_defn('RTE',50540,'J',.FALSE.,0,5,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['MeOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50571,'J',.FALSE.,0,4,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['CH4       ','CO        ','          ','          ']),                 &
+       asad_flux_defn('RTE',50541,'J',.FALSE.,0,5,                             &
+       ['EtCHO     ','PHOTON    '],                                            &
+       ['EtOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50569,'J',.FALSE.,0,6,                             &
+       ['MACR      ','PHOTON    '],                                            &
+       ['MeCO3     ','HCHO      ','CO        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50570,'J',.FALSE.,0,6,                             &
+       ['MACROOH   ','PHOTON    '],                                            &
+       ['HACET     ','CO        ','MGLY      ','HCHO      ']),                 &
+       asad_flux_defn('RTE',50515,'J',.FALSE.,0,6,                             &
+       ['NALD      ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','NO2       ','HO2       ']),                 &
 ! CO drydep
        asad_flux_defn('DEP',50079,'D',.TRUE.,0,1,                              &
        ['CO        ','          '],                                            &
@@ -4654,7 +5106,7 @@ TYPE(asad_flux_defn), PARAMETER :: asad_ro2perm_trop_co_budget(21) = [         &
        ]
 
 
-TYPE(asad_flux_defn), PARAMETER :: asad_ro2perm_trop_co_budget_121(21) = [     &
+TYPE(asad_flux_defn), PARAMETER :: asad_ro2perm_trop_co_budget_121(36) = [     &
 ! CO budget
 ! CO loss
        asad_flux_defn('RXN',50071,'B',.TRUE.,0,4,                              &
@@ -4727,6 +5179,57 @@ TYPE(asad_flux_defn), PARAMETER :: asad_ro2perm_trop_co_budget_121(21) = [     &
        asad_flux_defn('RXN',50078,'J',.TRUE.,0,6,                              &
        ['NALD      ','PHOTON    '],                                            &
        ['HCHO      ','CO        ','NO2       ','HO2       ']),                 &
+! CO prod - photol rate coefs
+! HCHO photol coef: RADICAL
+       asad_flux_defn('RTE',50501,'J',.FALSE.,0,5,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['HO2       ','HO2       ','CO        ','          ']),                 &
+! HCHO photol coef: MOLECULAR
+       asad_flux_defn('RTE',50502,'J',.FALSE.,0,4,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['H2        ','CO        ','          ','          ']),                 &
+! MGLY photol coef
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,5,                             &
+       ['MGLY      ','PHOTON    '],                                            &
+       ['MeCO3     ','CO        ','HO2       ','          ']),                 &
+! OTHER CO PROD PHOTOLYSIS COEFS, summed. Total = 6
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['MeOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,4,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['CH4       ','CO        ','          ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['EtCHO     ','PHOTON    '],                                            &
+       ['EtOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['MACR      ','PHOTON    '],                                            &
+       ['MeCO3     ','HCHO      ','CO        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['MACROOH   ','PHOTON    '],                                            &
+       ['HACET     ','CO        ','MGLY      ','HCHO      ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['NALD      ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','NO2       ','HO2       ']),                 &
+! OTHER CO PROD PHOTOLYSIS COEFS, separated. Total = 6
+       asad_flux_defn('RTE',50540,'J',.FALSE.,0,5,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['MeOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50571,'J',.FALSE.,0,4,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['CH4       ','CO        ','          ','          ']),                 &
+       asad_flux_defn('RTE',50541,'J',.FALSE.,0,5,                             &
+       ['EtCHO     ','PHOTON    '],                                            &
+       ['EtOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50569,'J',.FALSE.,0,6,                             &
+       ['MACR      ','PHOTON    '],                                            &
+       ['MeCO3     ','HCHO      ','CO        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50570,'J',.FALSE.,0,6,                             &
+       ['MACROOH   ','PHOTON    '],                                            &
+       ['HACET     ','CO        ','MGLY      ','HCHO      ']),                 &
+       asad_flux_defn('RTE',50515,'J',.FALSE.,0,6,                             &
+       ['NALD      ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','NO2       ','HO2       ']),                 &
 ! CO drydep
        asad_flux_defn('DEP',50079,'D',.TRUE.,0,1,                              &
        ['CO        ','          '],                                            &
@@ -4734,7 +5237,7 @@ TYPE(asad_flux_defn), PARAMETER :: asad_ro2perm_trop_co_budget_121(21) = [     &
        ]
 
 
-TYPE(asad_flux_defn), PARAMETER :: cri_trop_co_budget(47) = [                  &
+TYPE(asad_flux_defn), PARAMETER :: cri_trop_co_budget(62) = [                  &
 ! CO budget
 ! CO loss
        asad_flux_defn('RXN',50071,'B',.TRUE.,0,3,                              &
@@ -4896,6 +5399,60 @@ TYPE(asad_flux_defn), PARAMETER :: cri_trop_co_budget(47) = [                  &
        ['RTN10OOH  ','PHOTON    '],                                            &
        ['RN8O2     ','CO        ','OH        ','          ']),                 &
        asad_flux_defn('RXN',50078,'J',.TRUE.,0,5,                              &
+       ['TNCARB11  ','PHOTON    '],                                            &
+       ['RTN10O2   ','CO        ','HO2       ','          ']),                 &
+! CO prod - photol coefs 
+! HCHO photolysis coefs: RADICAL
+       asad_flux_defn('RTE',50501,'J',.FALSE.,0,5,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['HO2       ','HO2       ','CO        ','          ']),                 &
+! HCHO photolysis coefs: MOLECULAR
+       asad_flux_defn('RTE',50502,'J',.FALSE.,0,4,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['H2        ','CO        ','          ','          ']),                 &
+! MGLY photolysis
+!   CARB3 ~ GLY; CARB3 + hv -> 2CO + 2HO2 (3)
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,6,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,6,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,5,                             &
+       ['CARB6     ','PHOTON    '],                                            &
+       ['MeCO3     ','CO        ','HO2       ','          ']),                 &
+! OTHER CO PROD PHOTOLYSIS COEFS
+! Only one MeCHO+hv reaction in CRI (2)
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['MeOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['EtCHO     ','PHOTON    '],                                            &
+       ['EtOO      ','HO2       ','CO        ','          ']),                 &
+! CRI species photolysis CO production (7)
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HOCH2CHO  ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['UCARB12   ','PHOTON    '],                                            &
+       ['MeCO3     ','HOCH2CHO  ','CO        ','HO2       ']),                 &
+! NUCARB12 + photon -> NOA + 2*CO + 2*HO2
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['NOA       ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['NOA       ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['TNCARB10  ','PHOTON    '],                                            &
+       ['MeCO3     ','MeCO3     ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['NRU12OOH  ','PHOTON    '],                                            &
+       ['NOA       ','CO        ','HO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['RTN10OOH  ','PHOTON    '],                                            &
+       ['RN8O2     ','CO        ','OH        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
        ['TNCARB11  ','PHOTON    '],                                            &
        ['RTN10O2   ','CO        ','HO2       ','          ']),                 &
 ! CO drydep
@@ -5178,6 +5735,95 @@ TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_co_budget(81) = [           &
        ]
 
 
+TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_co_j_rates(26) = [          &
+! CO prod - photol coefs
+! HCHO photolysis coefs: RADICAL
+       asad_flux_defn('RTE',50501,'J',.FALSE.,0,5,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['HO2       ','HO2       ','CO        ','          ']),                 &
+! HCHO photolysis coefs: MOLECULAR
+       asad_flux_defn('RTE',50502,'J',.FALSE.,0,4,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['H2        ','CO        ','          ','          ']),                 &
+! MGLY photolysis coefs
+!   CARB3 ~ GLY; CARB3 + hv -> 2CO + 2HO2 (3)
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,6,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,6,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,5,                             &
+       ['CARB6     ','PHOTON    '],                                            &
+       ['MeCO3     ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,5,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','H2        ','          ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,5,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','H2        ','          ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,4,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','          ','          ']),                 &
+! OTHER CO PROD PHOTOLYSIS COEFS
+! Only one MeCHO+hv reaction in CRI (2)
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['MeOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['EtCHO     ','PHOTON    '],                                            &
+       ['EtOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HOCH2CHO  ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['UCARB12   ','PHOTON    '],                                            &
+       ['MeCO3     ','HOCH2CHO  ','CO        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['UCARB12   ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['UCARB12   ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['HUCARB9   ','CO        ','NO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['TNCARB10  ','PHOTON    '],                                            &
+       ['MeCO3     ','MeCO3     ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['RTN10OOH  ','PHOTON    '],                                            &
+       ['RN8O2     ','CO        ','OH        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['DHPCARB9  ','PHOTON    '],                                            &
+       ['RN8OOH    ','CO        ','HO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HPUCARB12 ','PHOTON    '],                                            &
+       ['HUCARB9   ','CO        ','OH        ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HPUCARB12 ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HPUCARB12 ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HUCARB9   ','PHOTON    '],                                            &
+       ['CARB6     ','CO        ','OH        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['DHPR12OOH ','PHOTON    '],                                            &
+       ['DHPCARB9  ','CO        ','OH        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['DHCARB9   ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','NO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','NO2       '])                  &
+       ]
+
+
 TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_co_budget_121(81) = [       &
 ! CO budget
 ! CO loss
@@ -5451,7 +6097,155 @@ TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_co_budget_121(81) = [       &
        ]
 
 
-TYPE(asad_flux_defn), PARAMETER :: cri_aer_trop_co_budget(47) = [              &
+TYPE(asad_flux_defn), PARAMETER :: cri_strat2_trop_co_j_rates_121(45) = [      &
+! CO prod - photol coefs
+! HCHO photolysis coefs: RADICAL
+       asad_flux_defn('RTE',50501,'J',.FALSE.,0,5,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['HO2       ','HO2       ','CO        ','          ']),                 &
+! HCHO photolysis coefs: MOLECULAR
+       asad_flux_defn('RTE',50502,'J',.FALSE.,0,4,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['H2        ','CO        ','          ','          ']),                 &
+! MGLY photolysis coefs
+!   CARB3 ~ GLY; CARB3 + hv -> 2CO + 2HO2 (3)
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,6,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,6,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,5,                             &
+       ['CARB6     ','PHOTON    '],                                            &
+       ['MeCO3     ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,5,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','H2        ','          ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,5,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','H2        ','          ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,4,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','          ','          ']),                 &
+! MGLY photolysis coefs, separated out individually
+       asad_flux_defn('RTE',50530,'J',.FALSE.,0,6,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50531,'J',.FALSE.,0,5,                             &
+       ['CARB6     ','PHOTON    '],                                            &
+       ['MeCO3     ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50532,'J',.FALSE.,0,5,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','H2        ','          ']),                 &
+       asad_flux_defn('RTE',50533,'J',.FALSE.,0,4,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','          ','          ']),                 &
+! OTHER CO PROD PHOTOLYSIS COEFS
+! Only one MeCHO+hv reaction in CRI (2)
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['MeOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['EtCHO     ','PHOTON    '],                                            &
+       ['EtOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HOCH2CHO  ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['UCARB12   ','PHOTON    '],                                            &
+       ['MeCO3     ','HOCH2CHO  ','CO        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['UCARB12   ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['UCARB12   ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['HUCARB9   ','CO        ','NO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['TNCARB10  ','PHOTON    '],                                            &
+       ['MeCO3     ','MeCO3     ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['RTN10OOH  ','PHOTON    '],                                            &
+       ['RN8O2     ','CO        ','OH        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['DHPCARB9  ','PHOTON    '],                                            &
+       ['RN8OOH    ','CO        ','HO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HPUCARB12 ','PHOTON    '],                                            &
+       ['HUCARB9   ','CO        ','OH        ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HPUCARB12 ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HPUCARB12 ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HUCARB9   ','PHOTON    '],                                            &
+       ['CARB6     ','CO        ','OH        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['DHPR12OOH ','PHOTON    '],                                            &
+       ['DHPCARB9  ','CO        ','OH        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['DHCARB9   ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','NO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','NO2       ']),                 &
+! OTHER CO PROD PHOTOLYSIS COEFS, separated out individually.
+       asad_flux_defn('RTE',50540,'J',.FALSE.,0,5,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['MeOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50541,'J',.FALSE.,0,5,                             &
+       ['EtCHO     ','PHOTON    '],                                            &
+       ['EtOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50542,'J',.FALSE.,0,6,                             &
+       ['HOCH2CHO  ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50543,'J',.FALSE.,0,6,                             &
+       ['UCARB12   ','PHOTON    '],                                            &
+       ['MeCO3     ','HOCH2CHO  ','CO        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50544,'J',.FALSE.,0,5,                             &
+       ['UCARB12   ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50545,'J',.FALSE.,0,6,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['HUCARB9   ','CO        ','NO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50546,'J',.FALSE.,0,5,                             &
+       ['TNCARB10  ','PHOTON    '],                                            &
+       ['MeCO3     ','MeCO3     ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50547,'J',.FALSE.,0,5,                             &
+       ['RTN10OOH  ','PHOTON    '],                                            &
+       ['RN8O2     ','CO        ','OH        ','          ']),                 &
+       asad_flux_defn('RTE',50548,'J',.FALSE.,0,6,                             &
+       ['DHPCARB9  ','PHOTON    '],                                            &
+       ['RN8OOH    ','CO        ','HO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50549,'J',.FALSE.,0,6,                             &
+       ['HPUCARB12 ','PHOTON    '],                                            &
+       ['HUCARB9   ','CO        ','OH        ','OH        ']),                 &
+       asad_flux_defn('RTE',50550,'J',.FALSE.,0,6,                             &
+       ['HPUCARB12 ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50551,'J',.FALSE.,0,6,                             &
+       ['HUCARB9   ','PHOTON    '],                                            &
+       ['CARB6     ','CO        ','OH        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50552,'J',.FALSE.,0,6,                             &
+       ['DHPR12OOH ','PHOTON    '],                                            &
+       ['DHPCARB9  ','CO        ','OH        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50553,'J',.FALSE.,0,6,                             &
+       ['DHCARB9   ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50554,'J',.FALSE.,0,6,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','NO2       '])                  &
+       ]
+
+
+TYPE(asad_flux_defn), PARAMETER :: cri_aer_trop_co_budget(62) = [              &
 ! CO budget
 ! CO loss
        asad_flux_defn('RXN',50071,'B',.TRUE.,0,3,                              &
@@ -5613,6 +6407,59 @@ TYPE(asad_flux_defn), PARAMETER :: cri_aer_trop_co_budget(47) = [              &
        ['RTN10OOH  ','PHOTON    '],                                            &
        ['RN8O2     ','CO        ','OH        ','          ']),                 &
        asad_flux_defn('RXN',50078,'J',.TRUE.,0,5,                              &
+       ['TNCARB11  ','PHOTON    '],                                            &
+       ['RTN10O2   ','CO        ','HO2       ','          ']),                 &
+! CO prod - photol coefs
+! HCHO photolysis coefs: RADICAL
+       asad_flux_defn('RTE',50501,'J',.FALSE.,0,5,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['HO2       ','HO2       ','CO        ','          ']),                 &
+! HCHO photolysis coefs: MOLECULAR
+       asad_flux_defn('RTE',50502,'J',.FALSE.,0,4,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['H2        ','CO        ','          ','          ']),                 &
+! MGLY photolysis coefs
+!   CARB3 ~ GLY; CARB3 + hv -> 2CO + 2HO2 (3)
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,6,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,6,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,5,                             &
+       ['CARB6     ','PHOTON    '],                                            &
+       ['MeCO3     ','CO        ','HO2       ','          ']),                 &
+! OTHER CO PROD PHOTOLYSIS coefs
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['MeOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['EtCHO     ','PHOTON    '],                                            &
+       ['EtOO      ','HO2       ','CO        ','          ']),                 &
+! CRI species photolysis CO production coefs
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HOCH2CHO  ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['UCARB12   ','PHOTON    '],                                            &
+       ['MeCO3     ','HOCH2CHO  ','CO        ','HO2       ']),                 &
+! NUCARB12 + photon -> NOA + 2*CO + 2*HO2
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['NOA       ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['NOA       ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['TNCARB10  ','PHOTON    '],                                            &
+       ['MeCO3     ','MeCO3     ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['NRU12OOH  ','PHOTON    '],                                            &
+       ['NOA       ','CO        ','HO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['RTN10OOH  ','PHOTON    '],                                            &
+       ['RN8O2     ','CO        ','OH        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
        ['TNCARB11  ','PHOTON    '],                                            &
        ['RTN10O2   ','CO        ','HO2       ','          ']),                 &
 ! CO drydep
@@ -5895,6 +6742,95 @@ TYPE(asad_flux_defn), PARAMETER :: cri_strat2_aer_trop_co_budget(81) = [       &
        ]
 
 
+TYPE(asad_flux_defn), PARAMETER :: cri_strat2_aer_trop_co_j_rates(26) = [      &
+! CO prod - photol coefs
+! HCHO photolysis coefs: RADICAL
+       asad_flux_defn('RTE',50501,'J',.FALSE.,0,5,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['HO2       ','HO2       ','CO        ','          ']),                 &
+! HCHO photolysis coefs: MOLECULAR
+       asad_flux_defn('RTE',50502,'J',.FALSE.,0,4,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['H2        ','CO        ','          ','          ']),                 &
+! MGLY photolysis coefs
+!   CARB3 ~ GLY; CARB3 + hv -> 2CO + 2HO2 (3)
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,6,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,6,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,5,                             &
+       ['CARB6     ','PHOTON    '],                                            &
+       ['MeCO3     ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,5,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','H2        ','          ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,5,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','H2        ','          ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,4,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','          ','          ']),                 &
+! OTHER CO PROD PHOTOLYSIS COEFS
+! Only one MeCHO+hv reaction in CRI (2)
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['MeOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['EtCHO     ','PHOTON    '],                                            &
+       ['EtOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HOCH2CHO  ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['UCARB12   ','PHOTON    '],                                            &
+       ['MeCO3     ','HOCH2CHO  ','CO        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['UCARB12   ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['UCARB12   ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['HUCARB9   ','CO        ','NO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['TNCARB10  ','PHOTON    '],                                            &
+       ['MeCO3     ','MeCO3     ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['RTN10OOH  ','PHOTON    '],                                            &
+       ['RN8O2     ','CO        ','OH        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['DHPCARB9  ','PHOTON    '],                                            &
+       ['RN8OOH    ','CO        ','HO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HPUCARB12 ','PHOTON    '],                                            &
+       ['HUCARB9   ','CO        ','OH        ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HPUCARB12 ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HPUCARB12 ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HUCARB9   ','PHOTON    '],                                            &
+       ['CARB6     ','CO        ','OH        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['DHPR12OOH ','PHOTON    '],                                            &
+       ['DHPCARB9  ','CO        ','OH        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['DHCARB9   ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','NO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','NO2       '])                  &
+       ]
+
+
 TYPE(asad_flux_defn), PARAMETER :: cri_strat2_aer_trop_co_budget_121(81) = [   &
 ! CO budget
 ! CO loss
@@ -6168,6 +7104,154 @@ TYPE(asad_flux_defn), PARAMETER :: cri_strat2_aer_trop_co_budget_121(81) = [   &
        ]
 
 
+TYPE(asad_flux_defn), PARAMETER :: cri_strat2_aer_trop_co_j_rates_121(45) = [  &
+! CO prod - photol coefs
+! HCHO photolysis coefs: RADICAL
+       asad_flux_defn('RTE',50501,'J',.FALSE.,0,5,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['HO2       ','HO2       ','CO        ','          ']),                 &
+! HCHO photolysis coefs: MOLECULAR
+       asad_flux_defn('RTE',50502,'J',.FALSE.,0,4,                             &
+       ['HCHO      ','PHOTON    '],                                            &
+       ['H2        ','CO        ','          ','          ']),                 &
+! MGLY photolysis coefs
+!   CARB3 ~ GLY; CARB3 + hv -> 2CO + 2HO2 (3)
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,6,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,6,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,5,                             &
+       ['CARB6     ','PHOTON    '],                                            &
+       ['MeCO3     ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,5,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','H2        ','          ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,5,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','H2        ','          ']),                 &
+       asad_flux_defn('RTE',50503,'J',.FALSE.,0,4,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','          ','          ']),                 &
+! MGLY photolysis coefs, separated out individually
+       asad_flux_defn('RTE',50530,'J',.FALSE.,0,6,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50531,'J',.FALSE.,0,5,                             &
+       ['CARB6     ','PHOTON    '],                                            &
+       ['MeCO3     ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50532,'J',.FALSE.,0,5,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['CO        ','CO        ','H2        ','          ']),                 &
+       asad_flux_defn('RTE',50533,'J',.FALSE.,0,4,                             &
+       ['CARB3     ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','          ','          ']),                 &
+! OTHER CO PROD PHOTOLYSIS COEFS
+! Only one MeCHO+hv reaction in CRI (2)
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['MeOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['EtCHO     ','PHOTON    '],                                            &
+       ['EtOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HOCH2CHO  ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['UCARB12   ','PHOTON    '],                                            &
+       ['MeCO3     ','HOCH2CHO  ','CO        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['UCARB12   ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['UCARB12   ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['HUCARB9   ','CO        ','NO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['TNCARB10  ','PHOTON    '],                                            &
+       ['MeCO3     ','MeCO3     ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,5,                             &
+       ['RTN10OOH  ','PHOTON    '],                                            &
+       ['RN8O2     ','CO        ','OH        ','          ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['DHPCARB9  ','PHOTON    '],                                            &
+       ['RN8OOH    ','CO        ','HO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HPUCARB12 ','PHOTON    '],                                            &
+       ['HUCARB9   ','CO        ','OH        ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HPUCARB12 ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HPUCARB12 ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['HUCARB9   ','PHOTON    '],                                            &
+       ['CARB6     ','CO        ','OH        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['DHPR12OOH ','PHOTON    '],                                            &
+       ['DHPCARB9  ','CO        ','OH        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['DHCARB9   ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','NO2       ']),                 &
+       asad_flux_defn('RTE',50504,'J',.FALSE.,0,6,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','NO2       ']),                 &
+! OTHER CO PROD PHOTOLYSIS COEFS, separated out individually.
+       asad_flux_defn('RTE',50540,'J',.FALSE.,0,5,                             &
+       ['MeCHO     ','PHOTON    '],                                            &
+       ['MeOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50541,'J',.FALSE.,0,5,                             &
+       ['EtCHO     ','PHOTON    '],                                            &
+       ['EtOO      ','HO2       ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50542,'J',.FALSE.,0,6,                             &
+       ['HOCH2CHO  ','PHOTON    '],                                            &
+       ['HCHO      ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50543,'J',.FALSE.,0,6,                             &
+       ['UCARB12   ','PHOTON    '],                                            &
+       ['MeCO3     ','HOCH2CHO  ','CO        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50544,'J',.FALSE.,0,5,                             &
+       ['UCARB12   ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','          ']),                 &
+       asad_flux_defn('RTE',50545,'J',.FALSE.,0,6,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['HUCARB9   ','CO        ','NO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50546,'J',.FALSE.,0,5,                             &
+       ['TNCARB10  ','PHOTON    '],                                            &
+       ['MeCO3     ','MeCO3     ','CO        ','          ']),                 &
+       asad_flux_defn('RTE',50547,'J',.FALSE.,0,5,                             &
+       ['RTN10OOH  ','PHOTON    '],                                            &
+       ['RN8O2     ','CO        ','OH        ','          ']),                 &
+       asad_flux_defn('RTE',50548,'J',.FALSE.,0,6,                             &
+       ['DHPCARB9  ','PHOTON    '],                                            &
+       ['RN8OOH    ','CO        ','HO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50549,'J',.FALSE.,0,6,                             &
+       ['HPUCARB12 ','PHOTON    '],                                            &
+       ['HUCARB9   ','CO        ','OH        ','OH        ']),                 &
+       asad_flux_defn('RTE',50550,'J',.FALSE.,0,6,                             &
+       ['HPUCARB12 ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','OH        ']),                 &
+       asad_flux_defn('RTE',50551,'J',.FALSE.,0,6,                             &
+       ['HUCARB9   ','PHOTON    '],                                            &
+       ['CARB6     ','CO        ','OH        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50552,'J',.FALSE.,0,6,                             &
+       ['DHPR12OOH ','PHOTON    '],                                            &
+       ['DHPCARB9  ','CO        ','OH        ','HO2       ']),                 &
+       asad_flux_defn('RTE',50553,'J',.FALSE.,0,6,                             &
+       ['DHCARB9   ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','HO2       ']),                 &
+       asad_flux_defn('RTE',50554,'J',.FALSE.,0,6,                             &
+       ['NUCARB12  ','PHOTON    '],                                            &
+       ['CARB7     ','CO        ','HO2       ','NO2       '])                  &
+       ]
+
+
 TYPE(asad_flux_defn), PARAMETER :: asad_lightning_diags(5) = [                 &
 ! WARNING: Lightning emissions are calculated as NO2, but emitted as NO
        asad_flux_defn('EMS',50081,'L',.FALSE.,0,1,                             &
@@ -6189,7 +7273,7 @@ TYPE(asad_flux_defn), PARAMETER :: asad_lightning_diags(5) = [                 &
 
 
 TYPE(asad_flux_defn), PARAMETER, PUBLIC ::                                     &
-                                     asad_strat_oh_prod(31) = [                &
+                                     asad_strat_oh_prod(45) = [                &
 asad_flux_defn('RXN',50091,'B',.FALSE.,0,5,                                    &
 ['Cl        ','HOCl      '],                                                   &
 ['Cl        ','Cl        ','OH        ','          ']),                        &
@@ -6282,12 +7366,56 @@ asad_flux_defn('RXN',50091,'J',.FALSE.,0,4,                                    &
 ['OH        ','OH        ','          ','          ']),                        &
 asad_flux_defn('RXN',50091,'J',.FALSE.,0,5,                                    &
   ['MeOOH     ','PHOTON    '],                                                 &
+['HCHO      ','HO2       ','OH        ','          ']),                        &
+! Photolysis rate coefs, summed. Total = 7.
+asad_flux_defn('RTE',50505,'J',.FALSE.,0,4,                                    &
+  ['HOBr      ','PHOTON    '],                                                 &
+['OH        ','Br        ','          ','          ']),                        &
+asad_flux_defn('RTE',50505,'J',.FALSE.,0,4,                                    &
+  ['HOCl      ','PHOTON    '],                                                 &
+['OH        ','Cl        ','          ','          ']),                        &
+asad_flux_defn('RTE',50505,'J',.FALSE.,0,4,                                    &
+  ['HONO2     ','PHOTON    '],                                                 &
+['NO2       ','OH        ','          ','          ']),                        &
+asad_flux_defn('RTE',50505,'J',.FALSE.,0,4,                                    &
+  ['HO2NO2    ','PHOTON    '],                                                 &
+['NO3       ','OH        ','          ','          ']),                        &
+asad_flux_defn('RTE',50505,'J',.FALSE.,0,4,                                    &
+  ['H2O       ','PHOTON    '],                                                 &
+['OH        ','H         ','          ','          ']),                        &
+asad_flux_defn('RTE',50505,'J',.FALSE.,0,4,                                    &
+  ['H2O2      ','PHOTON    '],                                                 &
+['OH        ','OH        ','          ','          ']),                        &
+asad_flux_defn('RTE',50505,'J',.FALSE.,0,5,                                    &
+  ['MeOOH     ','PHOTON    '],                                                 &
+['HCHO      ','HO2       ','OH        ','          ']),                        &
+! Photolysis rate coefs, separated out. Total = 7.
+asad_flux_defn('RTE',50559,'J',.FALSE.,0,4,                                    &
+  ['HOBr      ','PHOTON    '],                                                 &
+['OH        ','Br        ','          ','          ']),                        &
+asad_flux_defn('RTE',50560,'J',.FALSE.,0,4,                                    &
+  ['HOCl      ','PHOTON    '],                                                 &
+['OH        ','Cl        ','          ','          ']),                        &
+asad_flux_defn('RTE',50561,'J',.FALSE.,0,4,                                    &
+  ['HONO2     ','PHOTON    '],                                                 &
+['NO2       ','OH        ','          ','          ']),                        &
+asad_flux_defn('RTE',50562,'J',.FALSE.,0,4,                                    &
+  ['HO2NO2    ','PHOTON    '],                                                 &
+['NO3       ','OH        ','          ','          ']),                        &
+asad_flux_defn('RTE',50557,'J',.FALSE.,0,4,                                    &
+  ['H2O       ','PHOTON    '],                                                 &
+['OH        ','H         ','          ','          ']),                        &
+asad_flux_defn('RTE',50563,'J',.FALSE.,0,4,                                    &
+  ['H2O2      ','PHOTON    '],                                                 &
+['OH        ','OH        ','          ','          ']),                        &
+asad_flux_defn('RTE',50564,'J',.FALSE.,0,5,                                    &
+  ['MeOOH     ','PHOTON    '],                                                 &
 ['HCHO      ','HO2       ','OH        ','          '])                         &
 ]
 
 
 TYPE(asad_flux_defn), PARAMETER, PUBLIC ::                                     &
-                                     asad_strat_oh_prod_121(29) = [            &
+                                     asad_strat_oh_prod_121(43) = [            &
 asad_flux_defn('RXN',50091,'B',.FALSE.,0,5,                                    &
 ['Cl        ','HOCl      '],                                                   &
 ['Cl        ','Cl        ','OH        ','          ']),                        &
@@ -6373,6 +7501,50 @@ asad_flux_defn('RXN',50091,'J',.FALSE.,0,4,                                    &
   ['H2O2      ','PHOTON    '],                                                 &
 ['OH        ','OH        ','          ','          ']),                        &
 asad_flux_defn('RXN',50091,'J',.FALSE.,0,5,                                    &
+  ['MeOOH     ','PHOTON    '],                                                 &
+['HCHO      ','HO2       ','OH        ','          ']),                        &
+! Photolysis rate coefs, summed. Total = 7.
+asad_flux_defn('RTE',50505,'J',.FALSE.,0,4,                                    &
+  ['HOBr      ','PHOTON    '],                                                 &
+['OH        ','Br        ','          ','          ']),                        &
+asad_flux_defn('RTE',50505,'J',.FALSE.,0,4,                                    &
+  ['HOCl      ','PHOTON    '],                                                 &
+['OH        ','Cl        ','          ','          ']),                        &
+asad_flux_defn('RTE',50505,'J',.FALSE.,0,4,                                    &
+  ['HONO2     ','PHOTON    '],                                                 &
+['NO2       ','OH        ','          ','          ']),                        &
+asad_flux_defn('RTE',50505,'J',.FALSE.,0,4,                                    &
+  ['HO2NO2    ','PHOTON    '],                                                 &
+['NO3       ','OH        ','          ','          ']),                        &
+asad_flux_defn('RTE',50505,'J',.FALSE.,0,4,                                    &
+  ['H2O       ','PHOTON    '],                                                 &
+['OH        ','H         ','          ','          ']),                        &
+asad_flux_defn('RTE',50505,'J',.FALSE.,0,4,                                    &
+  ['H2O2      ','PHOTON    '],                                                 &
+['OH        ','OH        ','          ','          ']),                        &
+asad_flux_defn('RTE',50505,'J',.FALSE.,0,5,                                    &
+  ['MeOOH     ','PHOTON    '],                                                 &
+['HCHO      ','HO2       ','OH        ','          ']),                        &
+! Photolysis rate coefs, separated. Total = 7.
+asad_flux_defn('RTE',50559,'J',.FALSE.,0,4,                                    &
+  ['HOBr      ','PHOTON    '],                                                 &
+['OH        ','Br        ','          ','          ']),                        &
+asad_flux_defn('RTE',50560,'J',.FALSE.,0,4,                                    &
+  ['HOCl      ','PHOTON    '],                                                 &
+['OH        ','Cl        ','          ','          ']),                        &
+asad_flux_defn('RTE',50561,'J',.FALSE.,0,4,                                    &
+  ['HONO2     ','PHOTON    '],                                                 &
+['NO2       ','OH        ','          ','          ']),                        &
+asad_flux_defn('RTE',50562,'J',.FALSE.,0,4,                                    &
+  ['HO2NO2    ','PHOTON    '],                                                 &
+['NO3       ','OH        ','          ','          ']),                        &
+asad_flux_defn('RTE',50557,'J',.FALSE.,0,4,                                    &
+  ['H2O       ','PHOTON    '],                                                 &
+['OH        ','H         ','          ','          ']),                        &
+asad_flux_defn('RTE',50563,'J',.FALSE.,0,4,                                    &
+  ['H2O2      ','PHOTON    '],                                                 &
+['OH        ','OH        ','          ','          ']),                        &
+asad_flux_defn('RTE',50564,'J',.FALSE.,0,5,                                    &
   ['MeOOH     ','PHOTON    '],                                                 &
 ['HCHO      ','HO2       ','OH        ','          '])                         &
 ]
@@ -6548,12 +7720,26 @@ TYPE(asad_flux_defn), PARAMETER, PUBLIC ::                                     &
 
 ! Simple strat ozone budget
 TYPE(asad_flux_defn), PARAMETER, PUBLIC ::                                     &
-                                   asad_strat_o3_budget(20) = [                &
+                                   asad_strat_o3_budget(26) = [                &
 ! production
 asad_flux_defn('RXN',50101,'J',.FALSE.,0,4,                                    &
 ['O2        ','PHOTON    '],                                                   &
 ['O(3P)     ','O(3P)     ','          ','          ']),                        &
 asad_flux_defn('RXN',50101,'J',.FALSE.,0,4,                                    &
+['O2        ','PHOTON    '],                                                   &
+['O(3P)     ','O(1D)     ','          ','          ']),                        &
+! photolysis rate coefs, summed
+asad_flux_defn('RTE',50506,'J',.FALSE.,0,4,                                    &
+['O2        ','PHOTON    '],                                                   &
+['O(3P)     ','O(3P)     ','          ','          ']),                        &
+asad_flux_defn('RTE',50506,'J',.FALSE.,0,4,                                    &
+['O2        ','PHOTON    '],                                                   &
+['O(3P)     ','O(1D)     ','          ','          ']),                        &
+! photolysis rate coefs, separated out
+asad_flux_defn('RTE',50565,'J',.FALSE.,0,4,                                    &
+['O2        ','PHOTON    '],                                                   &
+['O(3P)     ','O(3P)     ','          ','          ']),                        &
+asad_flux_defn('RTE',50566,'J',.FALSE.,0,4,                                    &
 ['O2        ','PHOTON    '],                                                   &
 ['O(3P)     ','O(1D)     ','          ','          ']),                        &
 asad_flux_defn('RXN',50102,'B',.FALSE.,0,4,                                    &
@@ -6567,6 +7753,9 @@ asad_flux_defn('RXN',50104,'B',.FALSE.,0,4,                                    &
 ['H2O       ','NO3       ','          ','          ']),                        &
 ! loss
 asad_flux_defn('RXN',50111,'J',.FALSE.,0,5,                                    &
+['Cl2O2     ','PHOTON    '],                                                   &
+['Cl        ','Cl        ','O2        ','          ']),                        &
+asad_flux_defn('RTE',50507,'J',.FALSE.,0,5,                                    &
 ['Cl2O2     ','PHOTON    '],                                                   &
 ['Cl        ','Cl        ','O2        ','          ']),                        &
 asad_flux_defn('RXN',50112,'B',.FALSE.,0,4,                                    &
@@ -6597,6 +7786,9 @@ asad_flux_defn('RXN',50120,'B',.FALSE.,0,4,                                    &
 ['O(3P)     ','O3        '],                                                   &
 ['O2        ','O2        ','          ','          ']),                        &
 asad_flux_defn('RXN',50121,'J',.FALSE.,0,4,                                    &
+['NO3       ','PHOTON    '],                                                   &
+['NO        ','O2        ','          ','          ']),                        &
+asad_flux_defn('RTE',50508,'J',.FALSE.,0,4,                                    &
 ['NO3       ','PHOTON    '],                                                   &
 ['NO        ','O2        ','          ','          ']),                        &
 asad_flux_defn('RXN',50122,'B',.FALSE.,0,4,                                    &
@@ -7980,8 +9172,236 @@ TYPE(asad_flux_defn), PARAMETER :: cri_strat2_ro2ro2_reacn(65) = [             &
   ['CARB3     ','RN8OOH    ','OH        ','          '] )                      &
   ]
 
+
+! Additional photolysis rate coefficients for CRI-Strat
+TYPE(asad_flux_defn), PARAMETER :: cri_strat2_jrates(74) = [                   &
+  asad_flux_defn('RTE',50572,'J',.FALSE.,0,5,                                  &
+  ['EtOOH     ','PHOTON    '],                                                 &
+  ['MeCHO     ','HO2       ','OH        ','          ']),                      &
+  asad_flux_defn('RTE',50573,'J',.FALSE.,0,4,                                  &
+  ['N2O5      ','PHOTON    '],                                                 &
+  ['NO3       ','NO2       ','          ','          ']),                      &
+  asad_flux_defn('RTE',50574,'J',.FALSE.,0,4,                                  &
+  ['NO2       ','PHOTON    '],                                                 &
+  ['NO        ','O(3P)     ','          ','          ']),                      &
+  asad_flux_defn('RTE',50575,'J',.FALSE.,0,4,                                  &
+  ['PAN       ','PHOTON    '],                                                 &
+  ['MeCO3     ','NO2       ','          ','          ']),                      &
+  asad_flux_defn('RTE',50576,'J',.FALSE.,0,4,                                  &
+  ['HONO      ','PHOTON    '],                                                 &
+  ['OH        ','NO        ','          ','          ']),                      &
+  asad_flux_defn('RTE',50577,'J',.FALSE.,0,4,                                  &
+  ['Me2CO     ','PHOTON    '],                                                 &
+  ['MeCO3     ','MeOO      ','          ','          ']),                      &
+  asad_flux_defn('RTE',50578,'J',.FALSE.,0,5,                                  &
+  ['i-PrOOH   ','PHOTON    '],                                                 &
+  ['Me2CO     ','HO2       ','OH        ','          ']),                      &
+  asad_flux_defn('RTE',50579,'J',.FALSE.,0,4,                                  &
+  ['MeCO3H    ','PHOTON    '],                                                 &
+  ['MeOO      ','OH        ','          ','          ']),                      &
+  asad_flux_defn('RTE',50580,'J',.FALSE.,0,4,                                  &
+  ['BrCl      ','PHOTON    '],                                                 &
+  ['Br        ','Cl        ','          ','          ']),                      &
+  asad_flux_defn('RTE',50581,'J',.FALSE.,0,4,                                  & 
+  ['BrO       ','PHOTON    '],                                                 &
+  ['Br        ','O(3P)     ','          ','          ']),                      &
+  asad_flux_defn('RTE',50582,'J',.FALSE.,0,4,                                  &
+  ['BrONO2    ','PHOTON    '],                                                 &
+  ['Br        ','NO3       ','          ','          ']),                      &
+  asad_flux_defn('RTE',50583,'J',.FALSE.,0,4,                                  &
+  ['OClO      ','PHOTON    '],                                                 &
+  ['O(3P)     ','ClO       ','          ','          ']),                      &
+  asad_flux_defn('RTE',50585,'J',.FALSE.,0,4,                                  &
+  ['ClONO2    ','PHOTON    '],                                                 &
+  ['Cl        ','NO3       ','          ','          ']),                      &
+  asad_flux_defn('RTE',50586,'J',.FALSE.,0,4,                                  &
+  ['ClONO2    ','PHOTON    '],                                                 &
+  ['ClO       ','NO2       ','          ','          ']),                      &
+  asad_flux_defn('RTE',50587,'J',.FALSE.,0,4,                                  &
+  ['HCl       ','PHOTON    '],                                                 &
+  ['H         ','Cl        ','          ','          ']),                      &
+  asad_flux_defn('RTE',50588,'J',.FALSE.,0,4,                                  &
+  ['HOCl      ','PHOTON    '],                                                 &
+  ['OH        ','Cl        ','          ','          ']),                      &
+  asad_flux_defn('RTE',50589,'J',.FALSE.,0,5,                                  &
+  ['Cl2O2     ','PHOTON    '],                                                 &
+  ['Cl        ','Cl        ','O2        ','          ']),                      &
+  asad_flux_defn('RTE',50590,'J',.FALSE.,0,5,                                  &
+  ['CFCl3     ','PHOTON    '],                                                 &
+  ['Cl        ','Cl        ','Cl        ','          ']),                      &
+  asad_flux_defn('RTE',50591,'J',.FALSE.,0,4,                                  & 
+  ['CF2Cl2    ','PHOTON    '],                                                 &
+  ['Cl        ','Cl        ','          ','          ']),                      &
+  asad_flux_defn('RTE',50592,'J',.FALSE.,0,4,                                  &
+  ['MeBr      ','PHOTON    '],                                                 &
+  ['Br        ','H         ','          ','          ']),                      &
+  asad_flux_defn('RTE',50593,'J',.FALSE.,0,4,                                  &
+  ['CS2       ','PHOTON    '],                                                 &
+  ['COS       ','SO2       ','          ','          ']),                      &
+  asad_flux_defn('RTE',50594,'J',.FALSE.,0,5,                                  &
+  ['NOA       ','PHOTON    '],                                                 &
+  ['MeCO3     ','HCHO      ','NO2       ','          ']),                      &
+  asad_flux_defn('RTE',50595,'J',.FALSE.,0,4,                                  &
+  ['UDCARB8   ','PHOTON    '],                                                 &
+  ['EtOO      ','HO2       ','          ','          ']),                      &
+  asad_flux_defn('RTE',50596,'J',.FALSE.,0,4,                                  &
+  ['UDCARB11  ','PHOTON    '],                                                 &
+  ['RN10O2    ','HO2       ','          ','          ']),                      &
+  asad_flux_defn('RTE',50597,'J',.FALSE.,0,4,                                  &
+  ['UDCARB14  ','PHOTON    '],                                                 &
+  ['RN13O2    ','HO2       ','          ','          ']),                      &
+  asad_flux_defn('RTE',50598,'J',.FALSE.,0,4,                                  &
+  ['TNCARB26  ','PHOTON    '],                                                 &
+  ['RTN26O2   ','HO2       ','          ','          ']),                      &
+  asad_flux_defn('RTE',50599,'J',.FALSE.,0,5,                                  &
+  ['RN10OOH   ','PHOTON    '],                                                 &
+  ['EtCHO     ','HO2       ','OH        ','          ']),                      &
+  asad_flux_defn('RTE',50600,'J',.FALSE.,0,5,                                  &
+  ['RN13OOH   ','PHOTON    '],                                                 &
+  ['MeCHO     ','EtOO      ','OH        ','          ']),                      &
+  asad_flux_defn('RTE',50601,'J',.FALSE.,0,5,                                  & 
+  ['RN13OOH   ','PHOTON    '],                                                 &
+  ['CARB11A   ','HO2       ','OH        ','          ']),                      &
+  asad_flux_defn('RTE',50602,'J',.FALSE.,0,4,                                  &
+  ['RN16OOH   ','PHOTON    '],                                                 &
+  ['RN15AO2   ','OH        ','          ','          ']),                      &
+  asad_flux_defn('RTE',50603,'J',.FALSE.,0,4,                                  &
+  ['RN19OOH   ','PHOTON    '],                                                 &
+  ['RN18AO2   ','OH        ','          ','          ']),                      &
+  asad_flux_defn('RTE',50604,'J',.FALSE.,0,4,                                  &
+  ['EtCO3H    ','PHOTON    '],                                                 &
+  ['EtOO      ','OH        ','          ','          ']),                      &
+  asad_flux_defn('RTE',50605,'J',.FALSE.,0,5,                                  &
+  ['HOCH2CO3H ','PHOTON    '],                                                 &
+  ['HCHO      ','HO2       ','OH        ','          ']),                      &
+  asad_flux_defn('RTE',50606,'J',.FALSE.,0,4,                                  &
+  ['RN8OOH    ','PHOTON    '],                                                 &
+  ['EtOO      ','OH        ','          ','          ']),                      &
+  asad_flux_defn('RTE',50607,'J',.FALSE.,0,4,                                  &
+  ['RN11OOH   ','PHOTON    '],                                                 &
+  ['RN10O2    ','OH        ','          ','          ']),                      &
+  asad_flux_defn('RTE',50608,'J',.FALSE.,0,4,                                  &
+  ['RN14OOH   ','PHOTON    '],                                                 &
+  ['RN13O2    ','OH        ','          ','          ']),                      &
+  asad_flux_defn('RTE',50609,'J',.FALSE.,0,4,                                  &
+  ['RN17OOH   ','PHOTON    '],                                                 &
+  ['RN16O2    ','OH        ','          ','          ']),                      &
+  asad_flux_defn('RTE',50610,'J',.FALSE.,0,5,                                  &
+  ['RU14OOH   ','PHOTON    '],                                                 &
+  ['UCARB12   ','HO2       ','OH        ','          ']),                      &
+  asad_flux_defn('RTE',50611,'J',.FALSE.,0,6,                                  & 
+  ['RU14OOH   ','PHOTON    '],                                                 &
+  ['UCARB10   ','HCHO      ','HO2       ','OH        ']),                      &
+  asad_flux_defn('RTE',50612,'J',.FALSE.,0,6,                                  &
+  ['RU12OOH   ','PHOTON    '],                                                 &
+  ['CARB6     ','HOCH2CHO  ','HO2       ','OH        ']),                      &
+  asad_flux_defn('RTE',50613,'J',.FALSE.,0,5,                                  &
+  ['RU10OOH   ','PHOTON    '],                                                 &
+  ['MeCO3     ','HOCH2CHO  ','OH        ','          ']),                      &
+  asad_flux_defn('RTE',50614,'J',.FALSE.,0,5,                                  &
+  ['NRU14OOH  ','PHOTON    '],                                                 &
+  ['NUCARB12  ','HO2       ','OH        ','          ']),                      &
+  asad_flux_defn('RTE',50615,'J',.FALSE.,0,6,                                  &
+  ['NRU12OOH  ','PHOTON    '],                                                 &
+  ['NOA       ','CO        ','HO2       ','OH        ']),                      &
+  asad_flux_defn('RTE',50616,'J',.FALSE.,0,6,                                  &
+  ['NRU12OOH  ','PHOTON    '],                                                 &
+  ['NOA       ','CARB3     ','HO2       ','OH        ']),                      &
+  asad_flux_defn('RTE',50617,'J',.FALSE.,0,6,                                  &
+  ['HOC2H4OOH ','PHOTON    '],                                                 &
+  ['HCHO      ','HCHO      ','HO2       ','OH        ']),                      &
+  asad_flux_defn('RTE',50618,'J',.FALSE.,0,6,                                  &
+  ['RN9OOH    ','PHOTON    '],                                                 &
+  ['MeCHO     ','HCHO      ','HO2       ','OH        ']),                      &
+  asad_flux_defn('RTE',50619,'J',.FALSE.,0,6,                                  &
+  ['RN12OOH   ','PHOTON    '],                                                 &
+  ['MeCHO     ','MeCHO     ','HO2       ','OH        ']),                      &
+  asad_flux_defn('RTE',50620,'J',.FALSE.,0,6,                                  &
+  ['RN15OOH   ','PHOTON    '],                                                 &
+  ['EtCHO     ','MeCHO     ','HO2       ','OH        ']),                      &
+  asad_flux_defn('RTE',50621,'J',.FALSE.,0,6,                                  & 
+  ['RN18OOH   ','PHOTON    '],                                                 &
+  ['EtCHO     ','EtCHO     ','HO2       ','OH        ']),                      &
+  asad_flux_defn('RTE',50622,'J',.FALSE.,0,6,                                  &
+  ['NRN6OOH   ','PHOTON    '],                                                 &
+  ['HCHO      ','HCHO      ','NO2       ','OH        ']),                      &
+  asad_flux_defn('RTE',50623,'J',.FALSE.,0,6,                                  &
+  ['NRN9OOH   ','PHOTON    '],                                                 &
+  ['MeCHO     ','HCHO      ','NO2       ','OH        ']),                      &
+  asad_flux_defn('RTE',50624,'J',.FALSE.,0,6,                                  &
+  ['NRN12OOH  ','PHOTON    '],                                                 &
+  ['MeCHO     ','MeCHO     ','NO2       ','OH        ']),                      &
+  asad_flux_defn('RTE',50625,'J',.FALSE.,0,6,                                  &
+  ['RA13OOH   ','PHOTON    '],                                                 &
+  ['CARB3     ','UDCARB8   ','HO2       ','OH        ']),                      &
+  asad_flux_defn('RTE',50626,'J',.FALSE.,0,6,                                  &
+  ['RA16OOH   ','PHOTON    '],                                                 &
+  ['CARB3     ','UDCARB11  ','HO2       ','OH        ']),                      &
+  asad_flux_defn('RTE',50627,'J',.FALSE.,0,6,                                  &
+  ['RA19OOH   ','PHOTON    '],                                                 &
+  ['CARB6     ','UDCARB11  ','HO2       ','OH        ']),                      &
+  asad_flux_defn('RTE',50628,'J',.FALSE.,0,5,                                  &
+  ['RTN28OOH  ','PHOTON    '],                                                 &
+  ['TNCARB26  ','HO2       ','OH        ','          ']),                      &
+  asad_flux_defn('RTE',50629,'J',.FALSE.,0,5,                                  &
+  ['NRTN28OOH ','PHOTON    '],                                                 &
+  ['TNCARB26  ','NO2       ','OH        ','          ']),                      &
+  asad_flux_defn('RTE',50630,'J',.FALSE.,0,4,                                  &
+  ['RTN26OOH  ','PHOTON    '],                                                 &
+  ['RTN25O2   ','OH        ','          ','          ']),                      &
+  asad_flux_defn('RTE',50631,'J',.FALSE.,0,4,                                  & 
+  ['RTN25OOH  ','PHOTON    '],                                                 &
+  ['RTN24O2   ','OH        ','          ','          ']),                      &
+  asad_flux_defn('RTE',50632,'J',.FALSE.,0,4,                                  &
+  ['RTN24OOH  ','PHOTON    '],                                                 &
+  ['RTN23O2   ','OH        ','          ','          ']),                      &
+  asad_flux_defn('RTE',50633,'J',.FALSE.,0,5,                                  &
+  ['RTN23OOH  ','PHOTON    '],                                                 &
+  ['Me2CO     ','RTN14O2   ','OH        ','          ']),                      &
+  asad_flux_defn('RTE',50634,'J',.FALSE.,0,6,                                  &
+  ['RTN14OOH  ','PHOTON    '],                                                 &
+  ['TNCARB10  ','HCHO      ','HO2       ','OH        ']),                      &
+  asad_flux_defn('RTE',50635,'J',.FALSE.,0,5,                                  &
+  ['RTN10OOH  ','PHOTON    '],                                                 &
+  ['RN8O2     ','CO        ','OH        ','          ']),                      &
+  asad_flux_defn('RTE',50636,'J',.FALSE.,0,6,                                  &
+  ['RTX28OOH  ','PHOTON    '],                                                 &
+  ['TXCARB24  ','HCHO      ','HO2       ','OH        ']),                      &
+  asad_flux_defn('RTE',50637,'J',.FALSE.,0,5,                                  &
+  ['RTX24OOH  ','PHOTON    '],                                                 &
+  ['TXCARB22  ','HO2       ','OH        ','          ']),                      &
+  asad_flux_defn('RTE',50638,'J',.FALSE.,0,5,                                  &
+  ['RTX22OOH  ','PHOTON    '],                                                 &
+  ['Me2CO     ','RN13O2    ','OH        ','          ']),                      &
+  asad_flux_defn('RTE',50639,'J',.FALSE.,0,6,                                  &
+  ['NRTX28OOH ','PHOTON    '],                                                 &
+  ['TXCARB24  ','HCHO      ','NO2       ','OH        ']),                      &
+  asad_flux_defn('RTE',50640,'J',.FALSE.,0,5,                                  &
+  ['UDCARB8   ','PHOTON    '],                                                 &
+  ['ANHY      ','HO2       ','HO2       ','          ']),                      &
+  asad_flux_defn('RTE',50641,'J',.FALSE.,0,5,                                  & 
+  ['UDCARB11  ','PHOTON    '],                                                 &
+  ['ANHY      ','HO2       ','MeOO      ','          ']),                      &
+  asad_flux_defn('RTE',50642,'J',.FALSE.,0,5,                                  &
+  ['UDCARB14  ','PHOTON    '],                                                 &
+  ['ANHY      ','HO2       ','EtOO      ','          ']),                      &
+  asad_flux_defn('RTE',50643,'J',.FALSE.,0,4,                                  &
+  ['TNCARB12  ','PHOTON    '],                                                 &
+  ['RN9O2     ','HOCH2CO3  ','          ','          ']),                      &
+  asad_flux_defn('RTE',50644,'J',.FALSE.,0,5,                                  &
+  ['TNCARB11  ','PHOTON    '],                                                 &
+  ['RTN10O2   ','CO        ','HO2       ','          ']),                      &
+  asad_flux_defn('RTE',50645,'J',.FALSE.,0,4,                                  &
+  ['MeO2NO2   ','PHOTON    '],                                                 &
+  ['MeOO      ','NO2       ','          ','          ']),                      &
+  asad_flux_defn('RTE',50646,'J',.FALSE.,0,5,                                  & 
+  ['MeO2NO2   ','PHOTON    '],                                                 &
+  ['HCHO      ','HO2       ','NO3       ','          '])                       &
+]
+
+
 ! Methane Oxidation reactions, output to 50-247
-TYPE(asad_flux_defn), PARAMETER :: asad_ch4_oxidn(6) = [                       &
+TYPE(asad_flux_defn), PARAMETER :: asad_ch4_oxidn(7) = [                       &
 asad_flux_defn('RXN',50247,'J',.FALSE.,0,4,                      & ! RATJ_T
 ['CH4       ','PHOTON    '],                                                   &
 ['MeOO      ','H         ','          ','          ']),                        &
@@ -7999,11 +9419,15 @@ asad_flux_defn('RXN',50247,'B',.FALSE.,0,4,                      & ! B103
 ['OH        ','MeOO      ','          ','          '] ),                       &
 asad_flux_defn('RXN',50247,'B',.FALSE.,0,4,                      & ! B145
 ['OH        ','CH4       '],                                                   &
-['H2O       ','MeOO      ','          ','          '] )                        &
-  ]
+['H2O       ','MeOO      ','          ','          '] ),                       &
+! Photolysis rate coefficients
+asad_flux_defn('RTE',50558,'J',.FALSE.,0,4,                      & ! RATJ_T
+['CH4       ','PHOTON    '],                                                   &
+['MeOO      ','H         ','          ','          '])                         &
+]
 
 ! Chemical Production of O(1D), output to 50-254
-TYPE(asad_flux_defn), PARAMETER :: asad_o1d_prod(3) = [                        &
+TYPE(asad_flux_defn), PARAMETER :: asad_o1d_prod(9) = [                        &
 asad_flux_defn('RXN',50254,'J',.FALSE.,0,4,                                    &
 ['O3        ','PHOTON    '],                                                   &
 ['O2        ','O(1D)     ','          ','          ']),                        &
@@ -8012,8 +9436,29 @@ asad_flux_defn('RXN',50254,'J',.FALSE.,0,4,                                    &
 ['O(3P)     ','O(1D)     ','          ','          ']),                        &
 asad_flux_defn('RXN',50254,'J',.FALSE.,0,4,                                    &
 ['N2O       ','PHOTON    '],                                                   &
+['N2        ','O(1D)     ','          ','          ']),                        &
+! photolysis coefs, summed
+asad_flux_defn('RTE',50509,'J',.FALSE.,0,4,                                    &
+['O3        ','PHOTON    '],                                                   &
+['O2        ','O(1D)     ','          ','          ']),                        &
+asad_flux_defn('RTE',50509,'J',.FALSE.,0,4,                                    &
+['O2        ','PHOTON    '],                                                   &
+['O(3P)     ','O(1D)     ','          ','          ']),                        &
+asad_flux_defn('RTE',50509,'J',.FALSE.,0,4,                                    &
+['N2O       ','PHOTON    '],                                                   &
+['N2        ','O(1D)     ','          ','          ']),                        &
+! photolysis coefs, separated out
+asad_flux_defn('RTE',50567,'J',.FALSE.,0,4,                                    &
+['O3        ','PHOTON    '],                                                   &
+['O2        ','O(1D)     ','          ','          ']),                        &
+asad_flux_defn('RTE',50566,'J',.FALSE.,0,4,                                    &
+['O2        ','PHOTON    '],                                                   &
+['O(3P)     ','O(1D)     ','          ','          ']),                        &
+asad_flux_defn('RTE',50568,'J',.FALSE.,0,4,                                    &
+['N2O       ','PHOTON    '],                                                   &
 ['N2        ','O(1D)     ','          ','          '])                         &
-  ]
+]
+
 
 ! Tropospheric sulphur chemistry for online oxidants
 TYPE(asad_flux_defn), PARAMETER, PUBLIC ::                                     &
@@ -8124,7 +9569,7 @@ asad_flux_defn('DEP',50155,'W',.TRUE.,0,1,                                     &
 
 ! Water production: sum into section 50, item 238
 ! Reaction identifiers from ukca_chem_strattrop are shown
-TYPE(asad_flux_defn), PARAMETER :: asad_h2o_budget(38) = [                     &
+TYPE(asad_flux_defn), PARAMETER :: asad_h2o_budget(39) = [                     &
 asad_flux_defn('RXN',50238,'B',.FALSE.,0,4,                                    &
 ['H         ','HO2       '],                           & ! B044
 ['O(3P)     ','H2O       ','          ','          ']),                        &
@@ -8240,13 +9685,17 @@ asad_flux_defn('RXN',50239,'H',.FALSE.,0,4,                                    &
 ['HOCl      ','HONO2     ','          ','          ']),                        &
 asad_flux_defn('RXN',50239,'H',.FALSE.,0,4,                                    &
 ['N2O5      ','H2O       '],                            & ! Het PSC
-['HONO2     ','HONO2     ','          ','          '])                         &
+['HONO2     ','HONO2     ','          ','          ']),                        &
+! Photolysis rate coefficients
+asad_flux_defn('RTE',50557,'J',.FALSE.,0,4,                                    &
+['H2O       ','PHOTON    '],                            & ! Photol
+['OH        ','H         ','          ','          '])                         &
 ]
 
 
 ! Water production: sum into section 50, item 238
 ! Reaction identifiers from ukca_chem_strattrop are shown
-TYPE(asad_flux_defn), PARAMETER :: asad_h2o_budget_121(39) = [                 &
+TYPE(asad_flux_defn), PARAMETER :: asad_h2o_budget_121(40) = [                 &
 asad_flux_defn('RXN',50238,'B',.FALSE.,0,4,                                    &
 ['H         ','HO2       '],                           & ! B044
 ['O(3P)     ','H2O       ','          ','          ']),                        &
@@ -8365,14 +9814,18 @@ asad_flux_defn('RXN',50239,'H',.FALSE.,0,4,                                    &
 ['HOCl      ','HONO2     ','          ','          ']),                        &
 asad_flux_defn('RXN',50239,'H',.FALSE.,0,4,                                    &
 ['N2O5      ','H2O       '],                            & ! Het PSC
-['HONO2     ','HONO2     ','          ','          '])                         &
+['HONO2     ','HONO2     ','          ','          ']),                        &
+! Photolysis rate coefficients
+asad_flux_defn('RTE',50557,'J',.FALSE.,0,4,                                    &
+['H2O       ','PHOTON    '],                            & ! Photol
+['OH        ','H         ','          ','          '])                         &
 ]
 
 
 ! Strat-Trop sulphur chemistry (contains explicit SO3)
 ! For i_ukca_chem_version < 117
 TYPE(asad_flux_defn), PARAMETER, PUBLIC ::                                     &
-                         asad_aerosol_chem_strattrop(22) = [                   &
+                         asad_aerosol_chem_strattrop(25) = [                   &
 asad_flux_defn('RXN',50140,'B',.FALSE.,0,5,                                    &
 ['DMS       ','OH        '],                                                   &
 ['SO2       ','          ','          ','          ']),                        &
@@ -8402,7 +9855,7 @@ asad_flux_defn('RXN',50149,'B',.FALSE.,0,3,                                    &
 ['Sec_Org   ','          ','          ','          ']),                        &
 asad_flux_defn('RXN',50150,'T',.FALSE.,0,4,                                    &
 ['SO2       ','OH        '],                                                   &
-['HO2       ','SO3       ','          ','          ']),                        &
+['HO2       ','SO3       ','          ','          ']),                        & !10
 asad_flux_defn('RXN',50151,'H',.FALSE.,0,3,                                    &
 ['SO2       ','H2O2      '],                                                   &
 ['NULL0     ','          ','          ','          ']),                        &
@@ -8427,6 +9880,15 @@ asad_flux_defn('RXN',50332,'J',.TRUE.,0,4,                                     &
 asad_flux_defn('RXN',50333,'J',.TRUE.,0,4,                                     &
 ['SO3       ','PHOTON    '],                                                   &
 ['SO2       ','O(3P)     ','          ','          ']),                        &
+asad_flux_defn('RTE',50511,'J',.FALSE.,0,4,                                    &
+['COS       ','PHOTON    '],                                                   &
+['CO        ','SO2       ','          ','          ']),                        &
+asad_flux_defn('RTE',50512,'J',.FALSE.,0,4,                                    &
+['H2SO4     ','PHOTON    '],                                                   &
+['SO3       ','OH        ','          ','          ']),                        & !20
+asad_flux_defn('RTE',50513,'J',.FALSE.,0,4,                                    &
+['SO3       ','PHOTON    '],                                                   &
+['SO2       ','O(3P)     ','          ','          ']),                        &
 asad_flux_defn('RXN',50334,'B',.TRUE.,0,3,                                     &
 ['SO2       ','O3        '],                                                   &
 ['SO3       ','          ','          ','          ']),                        &
@@ -8439,13 +9901,13 @@ asad_flux_defn('RXN',50336,'B',.TRUE.,0,4,                                     &
 ! Retain H2O here as it is in original scheme
 asad_flux_defn('RXN',50337,'B',.TRUE.,0,4,                                     &
 ['SO3       ','H2O       '],                                                   &
-['H2SO4     ','H2O       ','          ','          '])                         &
+['H2SO4     ','H2O       ','          ','          '])                         & !25
 ]
 
 ! Strat-Trop sulphur chemistry (contains explicit SO3) for
 !                                         i_ukca_chem_version >=117
 TYPE(asad_flux_defn), PARAMETER, PUBLIC ::                                     &
-                         asad_aerosol_chem_strattrop_117(23) = [               &
+                         asad_aerosol_chem_strattrop_117(26) = [               &
 asad_flux_defn('RXN',50140,'B',.FALSE.,0,3,                                    &
 ['DMS       ','OH        '],                                                   &
 ['SO2       ','          ','          ','          ']),                        &
@@ -8500,6 +9962,15 @@ asad_flux_defn('RXN',50332,'J',.FALSE.,0,4,                                    &
 asad_flux_defn('RXN',50333,'J',.FALSE.,0,4,                                    &
 ['SO3       ','PHOTON    '],                                                   &
 ['SO2       ','O(3P)     ','          ','          ']),                        &
+asad_flux_defn('RTE',50511,'J',.FALSE.,0,4,                                    &
+['COS       ','PHOTON    '],                                                   &
+['CO        ','SO2       ','          ','          ']),                        &
+asad_flux_defn('RTE',50512,'J',.FALSE.,0,4,                                    &
+['H2SO4     ','PHOTON    '],                                                   &
+['SO3       ','OH        ','          ','          ']),                        &
+asad_flux_defn('RTE',50513,'J',.FALSE.,0,4,                                    &
+['SO3       ','PHOTON    '],                                                   &
+['SO2       ','O(3P)     ','          ','          ']),                        &
 asad_flux_defn('RXN',50334,'B',.FALSE.,0,3,                                    &
 ['SO2       ','O3        '],                                                   &
 ['SO3       ','          ','          ','          ']),                        &
@@ -8521,7 +9992,7 @@ asad_flux_defn('RXN',50338,'B',.FALSE.,0,5,                                    &
 ! Strat-Trop sulphur chemistry (contains explicit SO3) for
 !                                         i_ukca_chem_version >=121
 TYPE(asad_flux_defn), PARAMETER, PUBLIC ::                                     &
-                         asad_aerosol_chem_strattrop_121(24) = [               &
+                         asad_aerosol_chem_strattrop_121(27) = [               &
 asad_flux_defn('RXN',50140,'B',.FALSE.,0,3,                                    &
 ['DMS       ','OH        '],                                                   &
 ['SO2       ','          ','          ','          ']),                        &
@@ -8574,6 +10045,15 @@ asad_flux_defn('RXN',50332,'J',.FALSE.,0,4,                                    &
 ['H2SO4     ','PHOTON    '],                                                   &
 ['SO3       ','OH        ','          ','          ']),                        &
 asad_flux_defn('RXN',50333,'J',.FALSE.,0,4,                                    &
+['SO3       ','PHOTON    '],                                                   &
+['SO2       ','O(3P)     ','          ','          ']),                        &
+asad_flux_defn('RTE',50511,'J',.FALSE.,0,4,                                    &
+['COS       ','PHOTON    '],                                                   &
+['CO        ','SO2       ','          ','          ']),                        &
+asad_flux_defn('RTE',50512,'J',.FALSE.,0,4,                                    &
+['H2SO4     ','PHOTON    '],                                                   &
+['SO3       ','OH        ','          ','          ']),                        &
+asad_flux_defn('RTE',50513,'J',.FALSE.,0,4,                                    &
 ['SO3       ','PHOTON    '],                                                   &
 ['SO2       ','O(3P)     ','          ','          ']),                        &
 asad_flux_defn('RXN',50334,'B',.FALSE.,0,3,                                    &
@@ -8837,6 +10317,7 @@ TYPE(asad_flux_defn), ALLOCATABLE, SAVE :: aa_oxidN_wetdep(:)
 TYPE(asad_flux_defn), ALLOCATABLE, SAVE :: aa_trop_other_fluxes(:)
 TYPE(asad_flux_defn), ALLOCATABLE, SAVE :: aa_general_interest(:)
 TYPE(asad_flux_defn), ALLOCATABLE, SAVE :: aa_trop_co_budget(:)
+TYPE(asad_flux_defn), ALLOCATABLE, SAVE :: aa_trop_co_j_rates(:)
 TYPE(asad_flux_defn), ALLOCATABLE, SAVE :: aa_lightning_diags(:)
 TYPE(asad_flux_defn), ALLOCATABLE, SAVE :: aa_strat_oh_prod(:)
 TYPE(asad_flux_defn), ALLOCATABLE, SAVE :: aa_strat_oh_loss(:)
@@ -8853,6 +10334,7 @@ TYPE(asad_flux_defn), ALLOCATABLE, SAVE :: aa_h2o_budget(:)
 TYPE(asad_flux_defn), ALLOCATABLE, SAVE :: aa_ch4_budget_loss(:)
 TYPE(asad_flux_defn), ALLOCATABLE, SAVE :: aa_ch4_drydep(:)
 TYPE(asad_flux_defn), ALLOCATABLE, SAVE :: aa_ch4_ste(:)
+TYPE(asad_flux_defn), ALLOCATABLE, SAVE :: aa_jrates(:)
 
 INTEGER :: p1                   ! start position in asad_chemical_fluxes array
 INTEGER :: p2                   ! end position in asad_chemical_fluxes array
@@ -9128,9 +10610,13 @@ ELSE IF (ukca_config%l_ukca_cristrat) THEN
          ukca_config%i_ukca_chem_version < ichem_version_121) THEN
       ALLOCATE(aa_trop_co_budget(SIZE(cri_strat2_aer_trop_co_budget)))
       aa_trop_co_budget = cri_strat2_aer_trop_co_budget
+      ALLOCATE(aa_trop_co_j_rates(SIZE(cri_strat2_aer_trop_co_j_rates)))
+      aa_trop_co_j_rates = cri_strat2_aer_trop_co_j_rates
     ELSE IF (ukca_config%i_ukca_chem_version >= ichem_version_121) THEN
       ALLOCATE(aa_trop_co_budget(SIZE(cri_strat2_aer_trop_co_budget_121)))
       aa_trop_co_budget = cri_strat2_aer_trop_co_budget_121
+      ALLOCATE(aa_trop_co_j_rates(SIZE(cri_strat2_aer_trop_co_j_rates_121)))
+      aa_trop_co_j_rates = cri_strat2_aer_trop_co_j_rates_121
     ELSE
       ALLOCATE(aa_trop_co_budget(SIZE(cri_aer_trop_co_budget)))
       aa_trop_co_budget = cri_aer_trop_co_budget
@@ -9140,9 +10626,13 @@ ELSE IF (ukca_config%l_ukca_cristrat) THEN
          ukca_config%i_ukca_chem_version < ichem_version_121) THEN
       ALLOCATE(aa_trop_co_budget(SIZE(cri_strat2_trop_co_budget)))
       aa_trop_co_budget = cri_strat2_trop_co_budget
+      ALLOCATE(aa_trop_co_j_rates(SIZE(cri_strat2_trop_co_j_rates)))
+      aa_trop_co_j_rates = cri_strat2_trop_co_j_rates
     ELSE IF (ukca_config%i_ukca_chem_version >= ichem_version_121) THEN
       ALLOCATE(aa_trop_co_budget(SIZE(cri_strat2_trop_co_budget_121)))
       aa_trop_co_budget = cri_strat2_trop_co_budget_121
+      ALLOCATE(aa_trop_co_j_rates(SIZE(cri_strat2_trop_co_j_rates_121)))
+      aa_trop_co_j_rates = cri_strat2_trop_co_j_rates_121
     ELSE
       ALLOCATE(aa_trop_co_budget(SIZE(cri_trop_co_budget)))
       aa_trop_co_budget = cri_trop_co_budget
@@ -9233,6 +10723,9 @@ ELSE IF (ukca_config%l_ukca_cristrat) THEN
     ALLOCATE(aa_oxidN_wetdep(SIZE(cri_oxidN_wetdep)))
     aa_oxidN_wetdep = cri_oxidN_wetdep
   END IF
+  ! aa_jrates
+  ALLOCATE(aa_jrates(SIZE(cri_strat2_jrates)))
+  aa_jrates = cri_strat2_jrates
 
 
 ELSE IF (ukca_config%l_ukca_offline .OR. ukca_config%l_ukca_offline_be) THEN
@@ -9274,6 +10767,8 @@ IF (ALLOCATED(aa_general_interest))                                            &
    n_chemical_fluxes = n_chemical_fluxes + SIZE(aa_general_interest)
 IF (ALLOCATED(aa_trop_co_budget))                                              &
    n_chemical_fluxes = n_chemical_fluxes + SIZE(aa_trop_co_budget)
+IF (ALLOCATED(aa_trop_co_j_rates))                                             &
+   n_chemical_fluxes = n_chemical_fluxes + SIZE(aa_trop_co_j_rates)
 IF (ALLOCATED(aa_lightning_diags))                                             &
    n_chemical_fluxes = n_chemical_fluxes + SIZE(aa_lightning_diags)
 IF (ALLOCATED(aa_strat_oh_prod))                                               &
@@ -9306,6 +10801,8 @@ IF (ALLOCATED(aa_ch4_drydep))                                                  &
    n_chemical_fluxes = n_chemical_fluxes + SIZE(aa_ch4_drydep)
 IF (ALLOCATED(aa_ch4_ste))                                                     &
    n_chemical_fluxes = n_chemical_fluxes + SIZE(aa_ch4_ste)
+IF (ALLOCATED(aa_jrates))                                                      &
+   n_chemical_fluxes = n_chemical_fluxes + SIZE(aa_jrates)
 
 ALLOCATE(asad_chemical_fluxes(n_chemical_fluxes))
 
@@ -9367,6 +10864,11 @@ END IF
 IF (ALLOCATED(aa_trop_co_budget)) THEN
   p2 = p1 + SIZE(aa_trop_co_budget) - 1
   asad_chemical_fluxes(p1:p2) = aa_trop_co_budget(:)
+  p1 = p2 + 1
+END IF
+IF (ALLOCATED(aa_trop_co_j_rates)) THEN
+  p2 = p1 + SIZE(aa_trop_co_j_rates) - 1
+  asad_chemical_fluxes(p1:p2) = aa_trop_co_j_rates(:)
   p1 = p2 + 1
 END IF
 IF (ALLOCATED(aa_lightning_diags)) THEN
@@ -9449,6 +10951,11 @@ IF (ALLOCATED(aa_ch4_ste)) THEN
   asad_chemical_fluxes(p1:p2) = aa_ch4_ste(:)
   p1 = p2 + 1
 END IF
+IF (ALLOCATED(aa_jrates)) THEN
+  p2 = p1 + SIZE(aa_jrates) - 1
+  asad_chemical_fluxes(p1:p2) = aa_jrates(:)
+  p1 = p2 + 1
+END IF
 
 IF (p2 /= n_chemical_fluxes) THEN
   cmessage = ' n_chemical_fluxes and p2 are different'
@@ -9521,6 +11028,7 @@ IF (ALLOCATED(aa_strat_oh_loss))         DEALLOCATE(aa_strat_oh_loss)
 IF (ALLOCATED(aa_strat_oh_prod))         DEALLOCATE(aa_strat_oh_prod)
 IF (ALLOCATED(aa_lightning_diags))       DEALLOCATE(aa_lightning_diags)
 IF (ALLOCATED(aa_trop_co_budget))        DEALLOCATE(aa_trop_co_budget)
+IF (ALLOCATED(aa_trop_co_j_rates))       DEALLOCATE(aa_trop_co_j_rates)
 IF (ALLOCATED(aa_general_interest))      DEALLOCATE(aa_general_interest)
 IF (ALLOCATED(aa_trop_other_fluxes))     DEALLOCATE(aa_trop_other_fluxes)
 IF (ALLOCATED(aa_trop_ox_budget_wetdep)) DEALLOCATE(aa_trop_ox_budget_wetdep)
@@ -9529,7 +11037,7 @@ IF (ALLOCATED(aa_trop_ox_budget_loss02)) DEALLOCATE(aa_trop_ox_budget_loss02)
 IF (ALLOCATED(aa_trop_ox_budget_loss01)) DEALLOCATE(aa_trop_ox_budget_loss01)
 IF (ALLOCATED(aa_trop_ox_budget_prod02)) DEALLOCATE(aa_trop_ox_budget_prod02)
 IF (ALLOCATED(aa_trop_ox_budget_prod01)) DEALLOCATE(aa_trop_ox_budget_prod01)
-
+IF (ALLOCATED(aa_jrates))                DEALLOCATE(aa_jrates)
 
 IF (lhook) CALL dr_hook(ModuleName//':'//RoutineName,zhook_out,zhook_handle)
 

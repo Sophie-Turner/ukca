@@ -37,12 +37,15 @@ SUBROUTINE photol_ctl(error_code_ptr, row_length, rows, model_levels, jppj,    &
                       equation_of_time, current_time,                          &
                       ratj_data, ratj_varnames, conv_cloud_base,               &
                       conv_cloud_top, land_fraction, surf_albedo,              &
-                      longitude, sin_latitude, cos_latitude, tan_latitude,     &
+                      longitude, latitude, sin_latitude, cos_latitude,         &
+		      tan_latitude,                                            &
                       p_theta_levels, p_layer_boundaries, r_theta_levels,      &
                       r_rho_levels, qcl, qcf, area_cloud_fraction,             &
                       conv_cloud_amount, conv_cloud_lwp, ozone_mmr,            &
                       so4_aitken, so4_accum, aod_sulph_aitk, aod_sulph_accum,  &
-                      rad_ctl_jo2, rad_ctl_jo2b, t_theta_levels,               &
+                      rad_ctl_jo2, rad_ctl_jo2b,                               &
+		      sw_flux_up, sw_flux_down, cos_sza_um,                    &
+		      t_theta_levels, bulk_cloud_fraction, spec_humid,         &
                       photol_rates_2d, photol_rates,                           &
                       error_message, error_routine)
 !
@@ -54,10 +57,13 @@ SUBROUTINE photol_ctl(error_code_ptr, row_length, rows, model_levels, jppj,    &
 ! ---------------------------------------------------------------------
 !
 
+USE umPrintMgr,           ONLY: umMessage, umPrint, umPrintFlush
+
 USE ukca_error_mod,       ONLY: maxlen_message, maxlen_procname,               &
                                 errcode_value_invalid, error_report
 
 USE ukca_fastjx_mod,    ONLY: ukca_fastjx
+USE ml_photol_ctl_mod, ONLY: ml_photol_ctl    
 USE photol_calc_ozonecol_mod,  ONLY: photol_calc_ozonecol
 USE photol_fieldname_mod, ONLY: photol_varname_len
 USE photol_config_specification_mod,                                           &
@@ -73,6 +79,9 @@ USE ukca_solang_mod, ONLY: photol_solang => ukca_solang
 
 USE ukca_um_strat_photol_mod,  ONLY: strat_photol
 USE ukca_um_dissoc_mod,        ONLY: strat_photol_init, strat_photol_dealloc
+
+! OpenMP timing tests.
+USE omp_lib
 
 ! UM profiling and error handling
 USE yomhook,                  ONLY: lhook, dr_hook
@@ -90,6 +99,7 @@ CHARACTER(LEN=photol_varname_len), POINTER, INTENT(IN) :: ratj_data(:,:)
 CHARACTER(LEN=photol_varname_len), POINTER, INTENT(IN) :: ratj_varnames(:)
 REAL, INTENT(IN)    :: land_fraction(row_length,rows)
 REAL, INTENT(IN)    :: longitude(row_length, rows)
+REAL, INTENT(IN)    :: latitude(row_length, rows)
 REAL, INTENT(IN)    :: sin_latitude(row_length, rows)
 REAL, INTENT(IN)    :: cos_latitude(row_length, rows)
 REAL, INTENT(IN)    :: tan_latitude(row_length, rows)
@@ -99,6 +109,8 @@ REAL, INTENT(IN)    :: r_theta_levels(row_length,rows,0:model_levels)
 REAL, INTENT(IN)    :: r_rho_levels(row_length,rows, model_levels)
 REAL, INTENT(IN)    :: qcl(row_length, rows, model_levels)
 REAL, INTENT(IN)    :: qcf(row_length, rows, model_levels)
+REAL, INTENT(IN)    :: spec_humid(:,:,:)
+REAL, INTENT(IN)    :: bulk_cloud_fraction(row_length, rows, model_levels)
 REAL, INTENT(IN)    :: area_cloud_fraction(row_length, rows, model_levels)
 REAL, INTENT(IN)    :: conv_cloud_amount(row_length, rows, model_levels)
 REAL, INTENT(IN)    :: conv_cloud_lwp(row_length, rows)
@@ -120,6 +132,10 @@ REAL, INTENT(IN)    :: aod_sulph_accum(row_length, rows, model_levels)
 ! Photol rates drectly from Radiation scheme
 REAL, INTENT(IN)    :: rad_ctl_jo2(row_length, rows, model_levels)
 REAL, INTENT(IN)    :: rad_ctl_jo2b(row_length, rows, model_levels)
+! Shortwave fluxes & zenith angle from radiation scheme
+REAL, INTENT(IN)    :: sw_flux_up(row_length, rows, model_levels+1)
+REAL, INTENT(IN)    :: sw_flux_down(row_length, rows, model_levels+1)
+REAL, INTENT(IN)    :: cos_sza_um(row_length, rows)
 ! t_theta_levels also required for strat_photol and Fast-JX
 REAL, INTENT(IN)    :: t_theta_levels(row_length, rows, model_levels)
 ! 2-D (tabulated/ Offline) Photolysis rates
@@ -163,6 +179,10 @@ REAL                    :: r_secs_per_step
 ! if ukca_photin called, set to true (to prevent 2D photolysis data being
 ! read twice)
 LOGICAL, SAVE           :: l_ukca_photin_called = .FALSE.
+
+! Lightweight OpenMP timing test variables.
+REAL(8)                 :: count_start, count_end
+REAL(8)                 :: seconds_fj, seconds_ml
 
 ! DrHook variables
 INTEGER(KIND=jpim), PARAMETER :: zhook_in  = 0
@@ -226,14 +246,17 @@ END IF
 
 ! Calculate photolysis rates from Fast-JX
 IF (photol_config%i_photol_scheme == photolysis_fastjx) THEN
-
+  
   ! allocate array to store Fast-JX photolysis rates
   IF (.NOT. ALLOCATED(photol_rates_fastjx)) THEN
+    ! Dims: cols, rows, levels, rxns.
     ALLOCATE(photol_rates_fastjx(row_length, rows, model_levels, jppj))
   END IF
   photol_rates_fastjx = 0.0
-
-  ! now call ukca_fastjx to compute photol_rates_fastjx
+  
+  ! Wrap all of Fast-JX in a simple lightweight timing test.
+  count_start = omp_get_wtime()
+  ! Call ukca_fastjx to compute photol_rates_fastjx.
   CALL ukca_fastjx(error_code_ptr, row_length, rows, model_levels, jppj,       &
                    p_layer_boundaries, t_theta_levels,                         &
                    r_theta_levels, r_rho_levels,                               &
@@ -244,7 +267,33 @@ IF (photol_config%i_photol_scheme == photolysis_fastjx) THEN
                    conv_cloud_amount, aod_sulph_aitk, aod_sulph_accum,         &
                    surf_albedo, ozone_mmr, land_fraction, current_time,        &
                    photol_rates_fastjx, error_message=error_message,           &
-                   error_routine=error_routine)
+                   error_routine=error_routine) 
+  count_end = omp_get_wtime()
+  seconds_fj = count_end - count_start
+
+  ! Wrap all of ML photolysis in a simple lightweight timing test.
+  count_start = omp_get_wtime()
+  ! Machine learning emulation of Fast-JX photolysis.
+  ! Keeping output name as photol_rates_fastjx for now for simplicity.
+  CALL ml_photol_ctl(row_length, rows, model_levels, jppj,                     &
+                 current_time, longitude, latitude, loc_z_top_model,           &
+                 p_theta_levels, t_theta_levels, spec_humid,                   &
+                 bulk_cloud_fraction,                                          &
+                 sw_flux_up, sw_flux_down, cos_sza_um,                         &
+                 ratj_varnames, photol_rates_fastjx)  
+  count_end = omp_get_wtime()
+  seconds_ml = count_end - count_start
+
+  ! Output photolysis scheme timings.
+  WRITE(umMessage,'(A,E12.5)')                                                 &
+    'Wall time taken (s) for whole Fast-JX scheme at this timestep:',          &
+    seconds_fj
+  CALL umPrint(umMessage, src=RoutineName)
+  WRITE(umMessage,'(A,E12.5)')                                                 &
+    'Wall time taken (s) for whole ML photolysis scheme at this timestep:',    &
+    seconds_ml
+  CALL umPrint(umMessage, src=RoutineName)
+  CALL umPrintFlush()
 
   IF (error_code_ptr > 0) THEN
     IF (ALLOCATED(photol_rates_fastjx)) DEALLOCATE(photol_rates_fastjx)

@@ -65,7 +65,7 @@ SUBROUTINE ukca_chemistry_ctl_full(                                            &
                 co2_interactive, firstcall                                     &
                 )
 
-USE asad_mod,             ONLY: advt, cdt_diag, ctype,                         &
+USE asad_mod,             ONLY: advt, cdt, ctype,                              &
                                 ihso3_h2o2, ihso3_o3, ih2so4_hv, iso2_oh,      &
                                 iso3_o3, jpctr, jpcspf, jpdd, jpdw, jpnr,      &
                                 jppj, jpro2, jpspec, nadvt, nlnaro2, nprkx,    &
@@ -187,11 +187,13 @@ CHARACTER(LEN=10) :: prods3(3)                ! Products
 LOGICAL :: ddmask(theta_field_size)           ! mask
 
 REAL, ALLOCATABLE :: ystore(:)    ! array for H2SO4 when updated in MODE
-REAL :: zftr(tot_n_pnts,jpcspf)   ! 1-D array of chemically active species
+REAL :: zftr(tot_n_pnts,jpcspf)   ! 2-D array of chemically active species
                                   !   including RO2 species, in VMR
+REAL :: cdot(tot_n_pnts,jpcspf)   ! 2-D chem. tendency
 REAL :: zq(tot_n_pnts)            ! 1-D water vapour vmr
 REAL :: co2_1d(tot_n_pnts)        ! 1-D CO2
-REAL :: zprt1d(tot_n_pnts,jppj)   ! 1-D photolysis rates for ASAD
+! To-do: change the name of zprt1d because it is 2D, not 1D.
+REAL :: zprt1d(tot_n_pnts,jppj)   ! 2-D photolysis rates for ASAD
 REAL :: zdryrt2(tot_n_pnts,jpdd)  ! dry dep rate
 REAL :: rc_het(tot_n_pnts,2)      ! heterog rates for trop chem
 
@@ -237,7 +239,7 @@ END DO
 ! Put tracer mmr into 1-D array for use in ASAD chemical solver
 zq(:) = q(:)/c_h2o
 
-! Map photolysis rates onto 1-D array.
+! Map photolysis rates onto 2-D array.
 IF (ukca_config%l_ukca_offline) THEN
   ! Offline chemistry has no photolysis
   zprt1d(:,:) = 0.0
@@ -373,8 +375,8 @@ END IF
 ! Note: unlike in the other chemistry_ctl variants, here we call asad_cdrive
 ! once, passing in all data points from the current MPI process.
 
-CALL asad_cdrive(zftr, pres, temp, zq, co2_1d, cloud_frac, qcl, ix, jy, k,     &
-                 zdryrt2, zwetrt, rc_het, zprt1d, tot_n_pnts, have_nat,        &
+CALL asad_cdrive(cdot, zftr, pres, temp, zq, co2_1d, cloud_frac, qcl, ix, jy,  &
+                 k, zdryrt2, zwetrt, rc_het, zprt1d, tot_n_pnts, have_nat,     &
                  stratflag, H_plus)
 
 IF (ukca_config%l_ukca_het_psc) THEN
@@ -391,37 +393,35 @@ IF (ukca_config%l_ukca_chem .AND. ukca_config%l_ukca_nr_aqchem) THEN
   ! Calculate chemical fluxes for MODE
   IF (ihso3_h2o2 > 0) THEN
     delSO2_wet_H2O2(:) = delSO2_wet_H2O2(:) +                                  &
-      rk(:,ihso3_h2o2)*y(:,nn_so2)*y(:,nn_h2o2)*cdt_diag
+      rk(:,ihso3_h2o2)*y(:,nn_so2)*y(:,nn_h2o2)*cdt
   END IF
   IF (ihso3_o3 > 0) THEN
     delSO2_wet_O3(:) = delSO2_wet_O3(:) +                                      &
-      rk(:,ihso3_o3)*y(:,nn_so2)*y(:,nn_o3)*cdt_diag
+      rk(:,ihso3_o3)*y(:,nn_so2)*y(:,nn_o3)*cdt
   END IF
   IF (iso3_o3 > 0) THEN
     delSO2_wet_O3(:) = delSO2_wet_O3(:) +                                      &
-      rk(:,iso3_o3)*y(:,nn_so2)*y(:,nn_o3)*cdt_diag
+      rk(:,iso3_o3)*y(:,nn_so2)*y(:,nn_o3)*cdt
   END IF
   ! net H2SO4 production - note that this is affected by
   ! l_fix_ukca_h2so4_ystore above. Y value is concentration
   ! from chemistry prior to zftr being over-written below
   IF (iso2_oh > 0 .AND. ih2so4_hv > 0) THEN
     delh2so4_chem(:) = delh2so4_chem(:) +                                      &
-      (rk(:,iso2_oh)*y(:,nn_so2)*y(:,nn_oh) - rk(:,ih2so4_hv)*y(:,nn_h2so4))*  &
-      cdt_diag
+      (rk(:,iso2_oh)*y(:,nn_so2)*y(:,nn_oh) - rk(:,ih2so4_hv)*y(:,nn_h2so4))*cdt
   ELSE IF (iso2_oh > 0) THEN
     delh2so4_chem(:) = delh2so4_chem(:) +                                      &
-      rk(:,iso2_oh)*y(:,nn_so2)*y(:,nn_oh)*cdt_diag
+      rk(:,iso2_oh)*y(:,nn_so2)*y(:,nn_oh)*cdt
   END IF
 
   IF (uph2so4inaer == 1) THEN
-    ! Restore H2SO4 tracer as it will be updated in MODE
-    ! using delh2so4_chem
+     ! Restore H2SO4 tracer as it will be updated in MODE
+     ! using delh2so4_chem
     IF (ukca_config%l_fix_ukca_h2so4_ystore) THEN
-      ! calculate delh2so4_chem as the difference in H2SO4 over chemistry
-      ! zftr is already in VMR, so divide by diagnostic chemistry timestep to
-      ! give as vmr/s
-      delh2so4_chem(:) = (zftr(:,istore_h2so4) - ystore(:)) / cdt_diag
-      ! primary array passed is zftr, so copy back to this, NOT y
+       ! calculate delh2so4_chem as the difference in H2SO4 over chemistry
+       ! zftr is already in VMR, so divide by CDT to give as vmr/s
+      delh2so4_chem(:) = (zftr(:,istore_h2so4) - ystore(:)) / cdt
+       ! primary array passed is zftr, so copy back to this, NOT y
       zftr(:,istore_h2so4) = ystore(:)
     ELSE
       y(:,nn_h2so4) = ystore(:)
@@ -434,7 +434,7 @@ IF (L_asad_use_chem_diags .AND.                                                &
   ((L_asad_use_flux_rxns .OR. L_asad_use_rxn_rates) .OR.                       &
   (L_asad_use_wetdep .OR. L_asad_use_drydep))) THEN
   CALL asad_chemical_diagnostics(row_length,rows,model_levels,tot_n_pnts,      &
-    dpd,dpw,prk,y,jy,ix,klevel,volume,ierr)
+    dpd,dpw,rk,prk,y,jy,ix,klevel,volume,ierr)
 END IF
 
 ! PSC diagnostics

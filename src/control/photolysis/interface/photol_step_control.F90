@@ -38,6 +38,7 @@ USE photol_fieldname_mod,   ONLY:  fieldname_len,                              &
                                    photol_varname_len,                         &
                                    fldname_aod_sulph_aitk,                     &
                                    fldname_aod_sulph_accum,                    &
+                                   fldname_bulk_cloud_fraction,                &
                                    fldname_area_cloud_fraction,                &
                                    fldname_conv_cloud_amount,                  &
                                    fldname_conv_cloud_base,                    &
@@ -46,7 +47,8 @@ USE photol_fieldname_mod,   ONLY:  fieldname_len,                              &
                                    fldname_cos_latitude,                       &
                                    fldname_equation_of_time,                   &
                                    fldname_land_fraction,                      &
-                                   fldname_longitude,                          &
+                                   fldname_latitude,                           &
+				   fldname_longitude,                          &
                                    fldname_ozone_mmr,                          &
                                    fldname_p_layer_boundaries,                 &
                                    fldname_p_theta_levels,                     &
@@ -55,6 +57,9 @@ USE photol_fieldname_mod,   ONLY:  fieldname_len,                              &
                                    fldname_qcl,                                &
                                    fldname_rad_ctl_jo2,                        &
                                    fldname_rad_ctl_jo2b,                       &
+				   fldname_sw_flux_up,                         &
+				   fldname_sw_flux_down,                       &
+				   fldname_cos_sza_um,                         &
                                    fldname_r_rho_levels,                       &
                                    fldname_r_theta_levels,                     &
                                    fldname_sec_since_midnight,                 &
@@ -107,6 +112,7 @@ REAL, ALLOCATABLE   :: conv_cloud_lwp(:,:)
 REAL, ALLOCATABLE   :: surf_albedo(:,:)
 REAL, ALLOCATABLE   :: land_fraction(:,:)
 REAL, ALLOCATABLE   :: longitude(:,:)
+REAL, ALLOCATABLE   :: latitude(:,:)
 REAL, ALLOCATABLE   :: sin_latitude(:,:)
 REAL, ALLOCATABLE   :: cos_latitude(:,:)
 REAL, ALLOCATABLE   :: tan_latitude(:,:)
@@ -115,6 +121,7 @@ REAL, ALLOCATABLE   :: p_theta_levels(:,:,:)
 REAL, ALLOCATABLE   :: r_rho_levels(:,:,:)
 REAL, ALLOCATABLE   :: qcl(:,:,:)
 REAL, ALLOCATABLE   :: qcf(:,:,:)
+REAL, ALLOCATABLE   :: bulk_cloud_fraction(:,:,:)
 REAL, ALLOCATABLE   :: area_cloud_fraction(:,:,:)
 REAL, ALLOCATABLE   :: conv_cloud_amount(:,:,:)
 REAL, ALLOCATABLE   :: ozone_mmr(:,:,:)
@@ -124,6 +131,9 @@ REAL, ALLOCATABLE   :: aod_sulph_aitk(:,:,:)
 REAL, ALLOCATABLE   :: aod_sulph_accum(:,:,:)
 REAL, ALLOCATABLE   :: rad_ctl_jo2(:,:,:)
 REAL, ALLOCATABLE   :: rad_ctl_jo2b(:,:,:)
+REAL, ALLOCATABLE   :: sw_flux_up(:,:,:)
+REAL, ALLOCATABLE   :: sw_flux_down(:,:,:)
+REAL, ALLOCATABLE   :: cos_sza_um(:,:)
 REAL, ALLOCATABLE   :: t_theta_levels(:,:,:)
 
 ! Fullht0 Real
@@ -143,8 +153,8 @@ CONTAINS
 
 ! ----------------------------------------------------------------------
 SUBROUTINE photol_step_control(current_time, x_dim, y_dim, z_dim, jppj,        &
-                               ratj_data, ratj_varnames, error_code,           &
-                               photol_rates,                                   &
+                               ratj_data, ratj_varnames, spec_humid,           & 
+                               error_code, photol_rates,                       &
                                ! Names of environ fields supplied, optional
                                envfield_names_in,                              &
                                ! Environment Field groups, optional
@@ -192,6 +202,9 @@ INTEGER, INTENT(IN) :: jppj                 ! Number of photolytic species
 ! Photolysis species names
 CHARACTER(LEN=photol_varname_len), POINTER, INTENT(IN) :: ratj_data(:,:)
 CHARACTER(LEN=photol_varname_len), POINTER, INTENT(IN) :: ratj_varnames(:)
+
+! Specific humidity from UM.
+REAL, INTENT(IN)    :: spec_humid(:,:,:)
 
 ! Names of environment fields provided by the parent driving routine
 CHARACTER(LEN=fieldname_len), OPTIONAL, INTENT(IN) :: envfield_names_in(:)
@@ -340,6 +353,9 @@ IF ( error_code_ptr <= 0 .AND. PRESENT(envgroup_flat_real) ) THEN
       CASE (fldname_longitude)
         ALLOCATE(longitude(x_dim,y_dim))
         longitude(:,:) = envgroup_flat_real(:,:,n)
+      CASE (fldname_latitude)
+        ALLOCATE(latitude(x_dim, y_dim))
+	latitude(:,:) = envgroup_flat_real(:,:,n)
       CASE (fldname_sin_latitude)
         ALLOCATE(sin_latitude(x_dim,y_dim))
         sin_latitude(:,:) = envgroup_flat_real(:,:,n)
@@ -349,6 +365,9 @@ IF ( error_code_ptr <= 0 .AND. PRESENT(envgroup_flat_real) ) THEN
       CASE (fldname_tan_latitude)
         ALLOCATE(tan_latitude(x_dim,y_dim))
         tan_latitude(:,:) = envgroup_flat_real(:,:,n)
+      CASE (fldname_cos_sza_um)
+        ALLOCATE(cos_sza_um(x_dim,y_dim))
+        cos_sza_um(:,:) = envgroup_flat_real(:,:,n)
       CASE DEFAULT
         error_code_ptr = errcode_env_field_mismatch
         WRITE(err_msg,'(A,A)') 'Unknown FLAT REAL env field request ',         &
@@ -372,6 +391,9 @@ IF ( error_code_ptr <= 0 .AND. PRESENT(envgroup_fullht_real) ) THEN
       CASE (fldname_aod_sulph_accum)
         ALLOCATE(aod_sulph_accum(x_dim,y_dim,z_dim))
         aod_sulph_accum(:,:,:) = envgroup_fullht_real(:,:,:,n)
+      CASE (fldname_bulk_cloud_fraction)
+        ALLOCATE(bulk_cloud_fraction(x_dim,y_dim,z_dim))
+        bulk_cloud_fraction(:,:,:) = envgroup_fullht_real(:,:,:,n)
       CASE (fldname_area_cloud_fraction)
         ALLOCATE(area_cloud_fraction(x_dim,y_dim,z_dim))
         area_cloud_fraction(:,:,:) = envgroup_fullht_real(:,:,:,n)
@@ -396,6 +418,12 @@ IF ( error_code_ptr <= 0 .AND. PRESENT(envgroup_fullht_real) ) THEN
       CASE (fldname_rad_ctl_jo2b)
         ALLOCATE(rad_ctl_jo2b(x_dim,y_dim,z_dim))
         rad_ctl_jo2b(:,:,:) = envgroup_fullht_real(:,:,:,n)
+      CASE (fldname_sw_flux_up)
+        ALLOCATE(sw_flux_up(x_dim,y_dim,z_dim+1))
+        sw_flux_up(:,:,:) = envgroup_fullht_real(:,:,:,n)
+      CASE (fldname_sw_flux_down)
+        ALLOCATE(sw_flux_down(x_dim,y_dim,z_dim+1))
+        sw_flux_down(:,:,:) = envgroup_fullht_real(:,:,:,n)	
       CASE (fldname_r_rho_levels)
         ALLOCATE(r_rho_levels(x_dim,y_dim,z_dim))
         r_rho_levels(:,:,:) = envgroup_fullht_real(:,:,:,n)
@@ -494,6 +522,10 @@ IF (error_code_ptr <= 0) THEN
     ALLOCATE(longitude(1,1))
     longitude(:,:) = 0.0
   END IF
+  IF (.NOT. ALLOCATED(latitude)) THEN
+    ALLOCATE(latitude(1,1))
+    latitude(:,:) = 0.0
+  END IF
   IF (.NOT. ALLOCATED(sin_latitude)) THEN
     ALLOCATE(sin_latitude(1,1))
     sin_latitude(:,:) = 0.0
@@ -513,6 +545,10 @@ IF (error_code_ptr <= 0) THEN
   IF (.NOT. ALLOCATED(aod_sulph_accum)) THEN
     ALLOCATE(aod_sulph_accum(1,1,1))
     aod_sulph_accum(:,:,:) = 0.0
+  END IF
+  IF (.NOT. ALLOCATED(bulk_cloud_fraction)) THEN
+    ALLOCATE(bulk_cloud_fraction(1,1,1))
+    bulk_cloud_fraction(:,:,:) = 0.0
   END IF
   IF (.NOT. ALLOCATED(area_cloud_fraction)) THEN
     ALLOCATE(area_cloud_fraction(1,1,1))
@@ -550,6 +586,18 @@ IF (error_code_ptr <= 0) THEN
     ALLOCATE(rad_ctl_jo2b(1,1,1))
     rad_ctl_jo2b(:,:,:) = 0.0
   END IF
+  IF (.NOT. ALLOCATED(sw_flux_up)) THEN
+    ALLOCATE(sw_flux_up(1,1,1))
+    sw_flux_up(:,:,:) = 0.0
+  END IF
+  IF (.NOT. ALLOCATED(sw_flux_down)) THEN
+    ALLOCATE(sw_flux_down(1,1,1))
+    sw_flux_down(:,:,:) = 0.0
+  END IF
+  IF (.NOT. ALLOCATED(cos_sza_um)) THEN
+    ALLOCATE(cos_sza_um(1,1))
+    cos_sza_um(:,:) = 0.0
+  END IF
   IF (.NOT. ALLOCATED(r_rho_levels)) THEN
     ALLOCATE(r_rho_levels(1,1,1))
     r_rho_levels(:,:,:) = 0.0
@@ -581,14 +629,17 @@ IF (error_code_ptr <= 0) THEN
   ! Calculate Photolysis rates
   CALL photol_ctl(error_code_ptr, x_dim, y_dim, z_dim, jppj, z_top_of_model,   &
                   seconds_since_midnight, sin_declination, equation_of_time,   &
-                  current_time, ratj_data, ratj_varnames,                      &
-                  conv_cloud_base, conv_cloud_top, land_fraction, surf_albedo, &
-                  longitude, sin_latitude, cos_latitude, tan_latitude,         &
+                  current_time, ratj_data, ratj_varnames, conv_cloud_base,     &
+		  conv_cloud_top, land_fraction, surf_albedo, longitude,       &
+		  latitude, sin_latitude, cos_latitude, tan_latitude,          &
                   p_theta_levels, p_layer_boundaries, r_theta_levels,          &
                   r_rho_levels, qcl, qcf, area_cloud_fraction,                 &
                   conv_cloud_amount, conv_cloud_lwp, ozone_mmr, so4_aitken,    &
-                  so4_accum, aod_sulph_aitk, aod_sulph_accum, rad_ctl_jo2,     &
-                  rad_ctl_jo2b, t_theta_levels, photol_rates_2d, photol_rates, &
+                  so4_accum, aod_sulph_aitk, aod_sulph_accum,                  &
+		  rad_ctl_jo2, rad_ctl_jo2b,                                   &
+		  sw_flux_up, sw_flux_down, cos_sza_um,                        &
+		  t_theta_levels, bulk_cloud_fraction, spec_humid,             & 
+		  photol_rates_2d, photol_rates,                               &
                   error_message=error_message, error_routine=error_routine)
 
 END IF   ! Error code <= 0
@@ -618,11 +669,15 @@ IF (ALLOCATED(so4_aitken)) DEALLOCATE(so4_aitken)
 IF (ALLOCATED(r_rho_levels)) DEALLOCATE(r_rho_levels)
 IF (ALLOCATED(rad_ctl_jo2b)) DEALLOCATE(rad_ctl_jo2b)
 IF (ALLOCATED(rad_ctl_jo2)) DEALLOCATE(rad_ctl_jo2)
+IF (ALLOCATED(sw_flux_up)) DEALLOCATE(sw_flux_up)
+IF (ALLOCATED(sw_flux_down)) DEALLOCATE(sw_flux_down)
+IF (ALLOCATED(cos_sza_um)) DEALLOCATE(cos_sza_um)
 IF (ALLOCATED(qcl)) DEALLOCATE(qcl)
 IF (ALLOCATED(qcf)) DEALLOCATE(qcf)
 IF (ALLOCATED(p_theta_levels)) DEALLOCATE(p_theta_levels)
 IF (ALLOCATED(ozone_mmr)) DEALLOCATE(ozone_mmr)
 IF (ALLOCATED(conv_cloud_amount)) DEALLOCATE(conv_cloud_amount)
+IF (ALLOCATED(bulk_cloud_fraction)) DEALLOCATE(bulk_cloud_fraction)
 IF (ALLOCATED(area_cloud_fraction)) DEALLOCATE(area_cloud_fraction)
 IF (ALLOCATED(aod_sulph_accum)) DEALLOCATE(aod_sulph_accum)
 IF (ALLOCATED(aod_sulph_aitk)) DEALLOCATE(aod_sulph_aitk)
@@ -630,6 +685,7 @@ IF (ALLOCATED(aod_sulph_aitk)) DEALLOCATE(aod_sulph_aitk)
 IF (ALLOCATED(tan_latitude)) DEALLOCATE(tan_latitude)
 IF (ALLOCATED(surf_albedo)) DEALLOCATE(surf_albedo)
 IF (ALLOCATED(sin_latitude)) DEALLOCATE(sin_latitude)
+IF (ALLOCATED(latitude)) DEALLOCATE(latitude)
 IF (ALLOCATED(longitude)) DEALLOCATE(longitude)
 IF (ALLOCATED(land_fraction)) DEALLOCATE(land_fraction)
 IF (ALLOCATED(cos_latitude)) DEALLOCATE(cos_latitude)

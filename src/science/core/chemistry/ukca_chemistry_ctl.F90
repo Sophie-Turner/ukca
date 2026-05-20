@@ -65,7 +65,7 @@ SUBROUTINE ukca_chemistry_ctl(                                                 &
                 L_stratosphere, firstcall                                      &
                 )
 
-USE asad_mod,             ONLY: advt, cdt_diag, ctype,                         &
+USE asad_mod,             ONLY: advt, cdt, ctype,                              &
                                 ihso3_h2o2, ihso3_o3, ih2so4_hv, iso2_oh,      &
                                 iso3_o3, jpctr, jpcspf, jpdd, jpdw, jpnr,      &
                                 jppj, jpro2, jpspec, nadvt, nlnaro2, nprkx,    &
@@ -188,6 +188,7 @@ LOGICAL :: ddmask(theta_field_size)           ! mask
 ! ASAD_CHEMICAL_DIAGNOSTICS and ASAD_PSC_DIAGNOSTIC
 REAL :: dpd_dummy(model_levels,jpspec)
 REAL :: dpw_dummy(model_levels,jpspec)
+REAL :: rk_dummy(model_levels,jpnr)
 REAL :: prk_dummy(model_levels,jpnr)
 REAL :: y_dummy(model_levels,jpspec)
 REAL :: fpsc1_dummy(model_levels)
@@ -196,9 +197,11 @@ REAL :: fpsc2_dummy(model_levels)
 REAL, ALLOCATABLE :: ystore(:)          ! array for H2SO4 when updated in MODE
 REAL :: zftr(theta_field_size,jpcspf)   ! 1-D array of chemically active species
                                         !   including RO2 species, in VMR
+REAL :: cdot(theta_field_size,jpcspf)   ! 2-D chem. tendency
 REAL :: zq(theta_field_size)            ! 1-D water vapour vmr
 REAL :: co2_1d(theta_field_size)        ! 1-D CO2
-REAL :: zprt1d(theta_field_size,jppj)   ! 1-D photolysis rates for ASAD
+! To-do: Change the name of zprt1d because it is misleading, suggesting that it is 1D, not 2D.
+REAL :: zprt1d(theta_field_size,jppj)   ! 2-D photolysis rates for ASAD
 REAL :: zdryrt2(theta_field_size, jpdd) ! dry dep rate
 REAL :: rc_het(theta_field_size,2)      ! heterog rates for trop chem
 
@@ -222,6 +225,7 @@ dpd_dummy=0.0
 dpw_dummy=0.0
 fpsc1_dummy=0.0
 fpsc2_dummy=0.0
+rk_dummy=0.0
 prk_dummy=0.0
 y_dummy=0.0
 
@@ -238,16 +242,16 @@ DO l = 1, dim_ntp
 END DO
 
 !$OMP PARALLEL DEFAULT(NONE)                                                   &
-!$OMP PRIVATE(ddmask, errcode, ierr, jna, jro2, js, jspf, jtr, k, kcs, kce, l, &
-!$OMP         rc_het, ystore, zdryrt2, zftr, zprt1d, zq, co2_1d)               &
+!$OMP PRIVATE(cdot, ddmask, errcode, ierr, jna, jro2, js, jspf, jtr, k, kcs,   &
+!$OMP         kce, l, rc_het, ystore, zdryrt2, zftr, zprt1d, zq, co2_1d)       &
 !$OMP SHARED(advt, atm_cf2cl2_mol, atm_cfcl3_mol, atm_ch4_mol,                 &
 !$OMP        atm_co_mol, atm_h2_mol, atm_mebr_mol, atm_n2o_mol, avogadro,      &
 !$OMP        c_species, c_na_species, cloud_frac, cmessage,                    &
 !$OMP        delh2so4_chem, delSO2_wet_H2O2, delSO2_wet_O3,                    &
 !$OMP        dpd_dummy, dpw_dummy, fpsc1_dummy, fpsc2_dummy, H_plus,           &
-!$OMP        have_nat, prk_dummy, speci, specf, y_dummy, co2_interactive,      &
-!$OMP        ih2so4_hv, ihso3_h2o2, ihso3_o3, iso2_oh, iso3_o3,                &
-!$OMP        ix, jpctr, jpdd, jpdw, jppj, jpspec, jpro2, jy,                   &
+!$OMP        have_nat, rk_dummy, prk_dummy, speci, specf, y_dummy,             &
+!$OMP        co2_interactive, ih2so4_hv, ihso3_h2o2, ihso3_o3, iso2_oh,        &
+!$OMP        iso3_o3, ix, jpctr, jpdd, jpdw, jppj, jpspec, jpro2, jy,          &
 !$OMP        jpcspf, spro2, nlnaro2, ctype, istore_h2so4,                      &
 !$OMP        l_asad_use_chem_diags, l_asad_use_drydep,                         &
 !$OMP        l_asad_use_flux_rxns, l_asad_use_psc_diagnostic,                  &
@@ -313,7 +317,7 @@ DO k=1,model_levels
   END IF       ! CO2 as species
 
   ! Convert mmr into vmr for tracers. Pass data from the tracer 3D array,
-  ! unwrap it and pass into the 1D zftr array before calling ASAD_CDRIVE.
+  ! unwrap it and pass into the 2D zftr array before calling ASAD_CDRIVE.
   ! If running with nontransport RO2 species, data for the RO2 species
   ! needs to be passed from the all_ntp 3D array as well.
 
@@ -412,7 +416,8 @@ DO k=1,model_levels
     END IF
   END IF
 
-  CALL asad_cdrive(zftr,                                                       &
+  CALL asad_cdrive(cdot,                                                       &
+                   zftr,                                                       &
                    pres(kcs:kce),                                              &
                    temp(kcs:kce),                                              &
                    zq,                                                         &
@@ -443,15 +448,15 @@ DO k=1,model_levels
     ! Calculate chemical fluxes for MODE
     IF (ihso3_h2o2 > 0) THEN
       delSO2_wet_H2O2(kcs:kce) = delSO2_wet_H2O2(kcs:kce) +                    &
-        rk(:,ihso3_h2o2)*y(:,nn_so2)*y(:,nn_h2o2)*cdt_diag
+        rk(:,ihso3_h2o2)*y(:,nn_so2)*y(:,nn_h2o2)*cdt
     END IF
     IF (ihso3_o3 > 0) THEN
       delSO2_wet_O3(kcs:kce) = delSO2_wet_O3(kcs:kce) +                        &
-        rk(:,ihso3_o3)*y(:,nn_so2)*y(:,nn_o3)*cdt_diag
+        rk(:,ihso3_o3)*y(:,nn_so2)*y(:,nn_o3)*cdt
     END IF
     IF (iso3_o3 > 0) THEN
       delSO2_wet_O3(kcs:kce) = delSO2_wet_O3(kcs:kce) +                        &
-        rk(:,iso3_o3)*y(:,nn_so2)*y(:,nn_o3)*cdt_diag
+        rk(:,iso3_o3)*y(:,nn_so2)*y(:,nn_o3)*cdt
     END IF
     ! net H2SO4 production - note that this is affected by
     ! l_fix_ukca_h2so4_ystore above. Y value is concentration
@@ -459,21 +464,20 @@ DO k=1,model_levels
     IF (iso2_oh > 0 .AND. ih2so4_hv > 0) THEN
       delh2so4_chem(kcs:kce) = delh2so4_chem(kcs:kce) +                        &
        (rk(:,iso2_oh)*y(:,nn_so2)*y(:,nn_oh) -                                 &
-        rk(:,ih2so4_hv)*y(:,nn_h2so4))*cdt_diag
+        rk(:,ih2so4_hv)*y(:,nn_h2so4))*cdt
     ELSE IF (iso2_oh > 0) THEN
       delh2so4_chem(kcs:kce) = delh2so4_chem(kcs:kce) +                        &
-       rk(:,iso2_oh)*y(:,nn_so2)*y(:,nn_oh)*cdt_diag
+       rk(:,iso2_oh)*y(:,nn_so2)*y(:,nn_oh)*cdt
     END IF
 
     IF (uph2so4inaer == 1) THEN
-      ! Restore H2SO4 tracer as it will be updated in MODE
-      ! using delh2so4_chem
+       ! Restore H2SO4 tracer as it will be updated in MODE
+       ! using delh2so4_chem
       IF (ukca_config%l_fix_ukca_h2so4_ystore) THEN
-        ! calculate delh2so4_chem as the difference in H2SO4 over chemistry
-        ! zftr is already in VMR, so divide by diagnostic chemistry timestep to
-        ! give as vmr/s
-        delh2so4_chem(kcs:kce) = (zftr(:,istore_h2so4) - ystore(:)) / cdt_diag
-        ! primary array passed is zftr, so copy back to this, NOT y
+         ! calculate delh2so4_chem as the difference in H2SO4 over chemistry
+         ! zftr is already in VMR, so divide by CDT to give as vmr/s
+        delh2so4_chem(kcs:kce) = (zftr(:,istore_h2so4) - ystore(:)) / cdt
+         ! primary array passed is zftr, so copy back to this, NOT y
         zftr(:,istore_h2so4) = ystore(:)
       ELSE
         y(:,nn_h2so4) = ystore(:)
@@ -486,7 +490,7 @@ DO k=1,model_levels
        ((L_asad_use_flux_rxns .OR. L_asad_use_rxn_rates) .OR.                  &
        (L_asad_use_wetdep .OR. L_asad_use_drydep)))                            &
        CALL asad_chemical_diagnostics(row_length,rows,model_levels,            &
-       theta_field_size,dpd_dummy,dpw_dummy,prk_dummy,y_dummy,                 &
+       theta_field_size,dpd_dummy,dpw_dummy,rk_dummy,prk_dummy,y_dummy,        &
        ix,jy,k,volume,ierr)
 
   ! PSC diagnostics
@@ -504,9 +508,8 @@ DO k=1,model_levels
         tracer(kcs:kce,jtr) = zftr(:,jspf)*c_species(jtr)
       END IF
     END DO
-
-    ! If RO2 species are not being transported, map RO2 species
-    ! back to the all_ntp 3D array
+     
+    ! If RO2 species are not being transported, map RO2 species to the ntp_data 2D array
     IF (ukca_config%l_ukca_ro2_ntp) THEN
       DO jro2 = 1, jpro2
         IF (spro2(jro2) == speci(js) .AND. ctype(js) == 'OO') THEN
